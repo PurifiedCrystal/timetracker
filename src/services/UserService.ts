@@ -6,14 +6,18 @@ export class UserService {
    * Get user profile by user ID
    */
   static async getProfile(userId: string): Promise<{ data: UserProfile | null; error: string | null }> {
-    return await userProfiles.get(userId);
+    const result = await userProfiles.get(userId);
+    return {
+      data: result.data as UserProfile | null,
+      error: result.error
+    };
   }
 
   /**
    * Create user profile
    */
   static async createProfile(profileData: CreateUserProfileData): Promise<{ data: UserProfile | null; error: string | null }> {
-    return await userProfiles.create({
+    const result = await userProfiles.create({
       id: profileData.id,
       location_state: profileData.location_state || null,
       timezone: profileData.timezone || 'America/New_York',
@@ -21,16 +25,24 @@ export class UserService {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     });
+    return {
+      data: result.data as UserProfile | null,
+      error: result.error
+    };
   }
 
   /**
    * Update user profile
    */
   static async updateProfile(userId: string, updates: UpdateUserProfileData): Promise<{ data: UserProfile | null; error: string | null }> {
-    return await userProfiles.update(userId, {
+    const result = await userProfiles.update(userId, {
       ...updates,
       updated_at: new Date().toISOString(),
     });
+    return {
+      data: result.data as UserProfile | null,
+      error: result.error
+    };
   }
 
   /**

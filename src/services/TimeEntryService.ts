@@ -15,26 +15,38 @@ export class TimeEntryService {
    * Get user's time entries with optional filtering
    */
   static async getTimeEntries(userId: string, options: TimeEntryQueryOptions = {}): Promise<{ data: TimeEntry[] | null; error: string | null }> {
-    return await timeEntries.list(userId, {
+    const result = await timeEntries.list(userId, {
       startDate: options.startDate,
       endDate: options.endDate,
       limit: options.limit || 50,
       offset: options.offset || 0,
     });
+    return {
+      data: result.data as TimeEntry[] | null,
+      error: result.error
+    };
   }
 
   /**
    * Get specific time entry by ID
    */
   static async getTimeEntry(userId: string, entryId: string): Promise<{ data: TimeEntry | null; error: string | null }> {
-    return await timeEntries.get(userId, entryId);
+    const result = await timeEntries.get(userId, entryId);
+    return {
+      data: result.data as TimeEntry | null,
+      error: result.error
+    };
   }
 
   /**
    * Get user's active time entry (currently clocked in)
    */
   static async getActiveTimeEntry(userId: string): Promise<{ data: TimeEntry | null; error: string | null }> {
-    return await timeEntries.getActive(userId);
+    const result = await timeEntries.getActive(userId);
+    return {
+      data: result.data as TimeEntry | null,
+      error: result.error
+    };
   }
 
   /**
@@ -58,7 +70,7 @@ export class TimeEntryService {
       return { data: null, error };
     }
 
-    return { data: newEntry, error: null };
+    return { data: newEntry as TimeEntry | null, error: null };
   }
 
   /**
@@ -109,11 +121,12 @@ export class TimeEntryService {
     }
 
     // Apply labor rules if user is in California
-    if (updatedEntry && await UserService.isCaliforniaUser(userId)) {
-      await LaborRulesService.applyLaborRules(userId, updatedEntry);
+    const typedUpdatedEntry = updatedEntry as TimeEntry | null;
+    if (typedUpdatedEntry && await UserService.isCaliforniaUser(userId)) {
+      await LaborRulesService.applyLaborRules(userId, typedUpdatedEntry);
     }
 
-    return { data: updatedEntry, error: null };
+    return { data: typedUpdatedEntry, error: null };
   }
 
   /**
@@ -145,7 +158,11 @@ export class TimeEntryService {
       }
     }
 
-    return await timeEntries.update(userId, entryId, updates);
+    const result = await timeEntries.update(userId, entryId, updates);
+    return {
+      data: result.data as TimeEntry | null,
+      error: result.error
+    };
   }
 
   /**

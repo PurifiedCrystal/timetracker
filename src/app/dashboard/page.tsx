@@ -7,7 +7,10 @@ import {
   Clock,
   Calendar,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  BarChart3,
+  FileDown,
+  Settings
 } from 'lucide-react';
 import { format } from 'date-fns';
 
