@@ -25,7 +25,10 @@
       "Bash(node:*)",
       "Bash(npx playwright:*)",
       "Bash(curl:*)",
-      "WebFetch(domain:timetracker-20250924.netlify.app)"
+      "WebFetch(domain:timetracker-20250924.netlify.app)",
+      "WebFetch(domain:supabase.com)",
+      "Bash(supabase:*)",
+      "WebFetch(domain:kgwklydkmeihoulipqof.supabase.co)"
     ],
     "deny": [],
     "ask": []

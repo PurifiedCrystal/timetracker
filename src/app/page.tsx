@@ -276,11 +276,8 @@ export default function LandingPage() {
                   {[
                     'Everything in Standard plan',
                     'Custom pricing for 20+ users',
-                    'Priority phone support',
-                    'Custom feature development',
-                    'Additional state labor laws',
-                    'API integrations',
-                    'Dedicated account manager'
+                    'Priority support',
+                    'Priority feature development'
                   ].map((feature) => (
                     <li key={feature} className="flex items-center">
                       <CheckCircle className="h-5 w-5 text-blue-500 mr-3" />

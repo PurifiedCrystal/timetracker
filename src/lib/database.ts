@@ -172,7 +172,7 @@ export const subscriptions = {
 
   async upsert(subscription: any) {
     return dbQuery(() =>
-      supabaseAdmin
+      supabaseAdmin()
         .from('subscriptions')
         .upsert([subscription], { onConflict: 'user_id' })
         .select()
@@ -182,7 +182,7 @@ export const subscriptions = {
 
   async updateStatus(userId: string, status: string) {
     return dbQuery(() =>
-      supabaseAdmin
+      supabaseAdmin()
         .from('subscriptions')
         .update({ status })
         .eq('user_id', userId)

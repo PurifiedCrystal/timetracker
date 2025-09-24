@@ -11,3 +11,21 @@ b@UuEUQ@k7$P%8
 careprojecthomes@gmail.com
 BppXu75rao9d!4
 Project is CareProject
+https://supabase.com/dashboard/project/kgwklydkmeihoulipqof
+URL
+https://kgwklydkmeihoulipqof.supabase.co
+
+Legacy API
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtnd2tseWRrbWVpaG91bGlwcW9mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg3MjgwOTksImV4cCI6MjA3NDMwNDA5OX0.SVsGhRHEcRCArfKYwHbw2tWDfoF1JG8kaUm1cIgIOB4
+
+service_role secrete
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtnd2tseWRrbWVpaG91bGlwcW9mIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1ODcyODA5OSwiZXhwIjoyMDc0MzA0MDk5fQ.53hDEoxgc6ivlPZ1pZvfyCeWpaS8hQiBq5UhCNzKSPI
+
+Publishable key
+sb_publishable_cgPGiIBTDzBtdSFrAN-gkw_aP6Ax3lb
+
+Secret keys
+sb_secret_Cts1rHq8PkZoxVkP7LtiIQ_6k6EUVJm
+
+Legacy JWT secrete
+PtfTgy/295dQFCV6mEcOvngPMKCLw9u+DKoAEXX3ey/zrjxLGiYfhrV6WnIA2sLW98HuUmFajxPtLwJow7ghZg==

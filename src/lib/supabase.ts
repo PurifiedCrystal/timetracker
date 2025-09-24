@@ -23,10 +23,10 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 
 // Server-side Supabase client (with service role key)
 export const createServerSupabaseClient = () => {
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!serviceRoleKey) {
-    throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY');
+    throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY environment variable');
   }
 
   return createClient(supabaseUrl, serviceRoleKey, {
@@ -37,8 +37,14 @@ export const createServerSupabaseClient = () => {
   });
 };
 
-// Admin client for server-side operations
-export const supabaseAdmin = createServerSupabaseClient();
+// Admin client for server-side operations (lazy initialization)
+let _supabaseAdmin: ReturnType<typeof createServerSupabaseClient> | null = null;
+export const supabaseAdmin = () => {
+  if (!_supabaseAdmin) {
+    _supabaseAdmin = createServerSupabaseClient();
+  }
+  return _supabaseAdmin;
+};
 
 // Client-side helper to create authenticated client
 export const createAuthenticatedClient = () => {
