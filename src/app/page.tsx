@@ -16,53 +16,53 @@ import {
 const features = [
   {
     icon: Clock,
-    name: 'Simple Time Tracking',
-    description: 'One-click clock in and out with elegant, distraction-free interface.',
+    name: 'Employee Time Tracking',
+    description: 'Accurate time tracking for your team with one-click clock in/out functionality.',
   },
   {
     icon: BarChart3,
-    name: 'Smart Analytics',
-    description: 'View daily, weekly, and monthly summaries with overtime calculations.',
+    name: 'Payroll Ready Reports',
+    description: 'Generate detailed reports for payroll processing and labor cost analysis.',
   },
   {
     icon: FileDown,
-    name: 'Export Reports',
-    description: 'Generate CSV, PDF, and Excel reports for payroll and record-keeping.',
+    name: 'Multiple Export Formats',
+    description: 'Export to CSV, PDF, and Excel for seamless integration with your accounting software.',
   },
   {
     icon: Shield,
-    name: 'California Labor Compliance',
-    description: 'Automatic overtime tracking and break reminders for CA users.',
+    name: 'Labor Law Compliance',
+    description: 'Automatic overtime calculations and break tracking to ensure compliance.',
   },
   {
     icon: Zap,
-    name: 'Real-time Updates',
-    description: 'Live session tracking with automatic duration calculations.',
+    name: 'Real-time Monitoring',
+    description: 'Monitor your team\'s productivity and project time allocation in real-time.',
   },
   {
     icon: CheckCircle,
     name: 'Reliable & Secure',
-    description: 'Built with enterprise-grade security and 99.9% uptime.',
+    description: 'Enterprise-grade security with 99.9% uptime guarantee for your business.',
   },
 ];
 
 const testimonials = [
   {
-    name: 'Sarah Chen',
-    role: 'Freelance Designer',
-    content: 'TimeTracker has simplified my billing process. The export feature saves me hours every month.',
+    name: 'David Martinez',
+    role: 'Construction Company Owner',
+    content: 'TimeTracker has streamlined our payroll process. Labor compliance features save us from costly violations.',
     rating: 5,
   },
   {
-    name: 'Mike Rodriguez',
-    role: 'Small Business Owner',
-    content: 'Perfect for managing my team\'s hours. The California labor compliance feature is a lifesaver.',
+    name: 'Lisa Thompson',
+    role: 'Manufacturing Manager',
+    content: 'Perfect for managing our 50+ workforce. The reporting features make payroll processing effortless.',
     rating: 5,
   },
   {
-    name: 'Emily Johnson',
-    role: 'Consultant',
-    content: 'Clean, simple interface that just works. No bloat, just what I need to track time effectively.',
+    name: 'Robert Kim',
+    role: 'Restaurant Owner',
+    content: 'Simple interface that our staff can use easily. Overtime tracking helps control labor costs.',
     rating: 5,
   },
 ];
@@ -99,51 +99,48 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <div className="relative bg-white overflow-hidden">
-        <div className="max-w-7xl mx-auto">
-          <div className="relative z-10 pb-8 bg-white sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
-            <main className="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
-              <div className="sm:text-center lg:text-left">
-                <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
-                  <span className="block xl:inline">Simple, elegant</span>{' '}
-                  <span className="block text-blue-600 xl:inline">time tracking</span>
-                </h1>
-                <p className="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
-                  Track your work hours with a clean, distraction-free interface.
-                  Built for freelancers, consultants, and small teams who value simplicity and reliability.
-                </p>
-                <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
-                  <div className="rounded-md shadow">
-                    <Link
-                      href="/signup"
-                      className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 md:py-4 md:text-lg md:px-10"
-                    >
-                      Start Free Trial
-                    </Link>
-                  </div>
-                  <div className="mt-3 sm:mt-0 sm:ml-3">
-                    <Link
-                      href="/login"
-                      className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 md:py-4 md:text-lg md:px-10"
-                    >
-                      Sign In
-                    </Link>
-                  </div>
-                </div>
-                <div className="mt-6 text-sm text-gray-500">
-                  <span className="font-medium text-green-600">✓</span> No credit card required
-                  <span className="ml-4 font-medium text-green-600">✓</span> Cancel anytime
-                  <span className="ml-4 font-medium text-green-600">✓</span> $1.99/month
-                </div>
-              </div>
-            </main>
-          </div>
-        </div>
-        <div className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
-          <div className="h-56 w-full bg-gradient-to-br from-blue-50 to-blue-100 sm:h-72 md:h-96 lg:w-full lg:h-full flex items-center justify-center">
-            <div className="text-center">
-              <Clock className="h-32 w-32 text-blue-200 mx-auto mb-4" />
-              <div className="text-6xl font-mono font-bold text-blue-400">08:42:15</div>
-              <div className="text-blue-600 font-medium mt-2">Active Session</div>
+        <div className="max-w-4xl mx-auto py-24 px-4 sm:py-32 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
+              <span className="block">Professional Time Tracking</span>{' '}
+              <span className="block text-blue-600">for Business Owners</span>
+            </h1>
+            <p className="mt-6 max-w-3xl mx-auto text-xl text-gray-500">
+              Streamline payroll, ensure labor compliance, and gain insights into your workforce productivity.
+              Built for businesses who need accurate time tracking with enterprise-grade reliability.
+            </p>
+            <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                href="/signup"
+                className="inline-flex items-center justify-center px-8 py-4 border border-transparent text-lg font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+              >
+                Start Free Trial
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+              <Link
+                href="#pricing"
+                className="inline-flex items-center justify-center px-8 py-4 border border-gray-300 text-lg font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+              >
+                View Pricing
+              </Link>
+            </div>
+            <div className="mt-8 flex flex-wrap justify-center gap-8 text-sm text-gray-600">
+              <span className="flex items-center">
+                <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                No setup fees
+              </span>
+              <span className="flex items-center">
+                <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                Cancel anytime
+              </span>
+              <span className="flex items-center">
+                <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                30-day free trial
+              </span>
+              <span className="flex items-center">
+                <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                Volume discounts available
+              </span>
             </div>
           </div>
         </div>
@@ -206,35 +203,37 @@ export default function LandingPage() {
       </div>
 
       {/* Pricing */}
-      <div className="bg-white py-16" id="pricing">
+      <div className="bg-gray-50 py-16" id="pricing">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="lg:text-center">
+          <div className="text-center">
             <h2 className="text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
-              Simple, transparent pricing
+              Transparent pricing for every business size
             </h2>
             <p className="mt-4 text-xl text-gray-500">
-              No hidden fees, no complicated tiers. Just honest pricing for honest work.
+              Scale with confidence. No hidden fees, no setup costs.
             </p>
           </div>
-          <div className="mt-10 flex justify-center">
-            <div className="bg-white rounded-lg shadow-lg overflow-hidden max-w-md">
+          <div className="mt-16 grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {/* Standard Plan */}
+            <div className="bg-white rounded-lg shadow-lg overflow-hidden">
               <div className="px-6 py-8 bg-blue-600 text-center">
-                <h3 className="text-2xl font-extrabold text-white">Pro</h3>
+                <h3 className="text-2xl font-extrabold text-white">Standard</h3>
                 <div className="mt-4 flex items-baseline justify-center">
                   <span className="text-5xl font-extrabold text-white">$1.99</span>
-                  <span className="ml-1 text-xl font-semibold text-blue-100">/month</span>
+                  <span className="ml-1 text-xl font-semibold text-blue-100">/user/month</span>
                 </div>
-                <p className="mt-4 text-blue-100">Everything you need to track time effectively</p>
+                <p className="mt-4 text-blue-100">Perfect for small to medium businesses</p>
               </div>
               <div className="px-6 pt-6 pb-8">
                 <ul className="space-y-4">
                   {[
-                    'Unlimited time tracking',
-                    'Daily, weekly, monthly reports',
+                    'Unlimited time tracking per user',
+                    'Payroll-ready reports',
                     'CSV, PDF, Excel exports',
-                    'California labor compliance',
-                    'Real-time sync',
-                    'Email support'
+                    'Labor law compliance',
+                    'Real-time monitoring',
+                    'Email support',
+                    'Mobile app access'
                   ].map((feature) => (
                     <li key={feature} className="flex items-center">
                       <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
@@ -245,11 +244,76 @@ export default function LandingPage() {
                 <div className="mt-8">
                   <Link
                     href="/signup"
-                    className="w-full bg-blue-600 text-white rounded-md px-4 py-2 text-center font-medium hover:bg-blue-700 inline-block"
+                    className="w-full bg-blue-600 text-white rounded-md px-4 py-3 text-center font-medium hover:bg-blue-700 inline-block transition-colors"
                   >
-                    Start Free Trial
+                    Start 30-Day Free Trial
                   </Link>
                 </div>
+              </div>
+            </div>
+
+            {/* Enterprise Plan */}
+            <div className="bg-white rounded-lg shadow-lg overflow-hidden border-2 border-blue-500 relative">
+              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                <span className="bg-blue-500 text-white px-4 py-1 text-sm font-medium rounded-full">
+                  MOST POPULAR
+                </span>
+              </div>
+              <div className="px-6 py-8 bg-gray-900 text-center">
+                <h3 className="text-2xl font-extrabold text-white">Enterprise</h3>
+                <div className="mt-4 flex items-baseline justify-center">
+                  <span className="text-3xl font-extrabold text-white">Volume</span>
+                  <span className="ml-2 text-xl font-semibold text-gray-300">Discount</span>
+                </div>
+                <p className="mt-4 text-gray-300">For teams of 20+ employees</p>
+              </div>
+              <div className="px-6 pt-6 pb-8">
+                <ul className="space-y-4">
+                  {[
+                    'Everything in Standard plan',
+                    'Custom pricing for 20+ users',
+                    'Priority phone support',
+                    'Advanced reporting & analytics',
+                    'Custom integrations',
+                    'Dedicated account manager',
+                    'SLA guarantee'
+                  ].map((feature) => (
+                    <li key={feature} className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
+                      <span className="text-gray-700">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-8">
+                  <a
+                    href="mailto:sales@timetracker.com?subject=Enterprise%20Pricing%20Inquiry"
+                    className="w-full bg-gray-900 text-white rounded-md px-4 py-3 text-center font-medium hover:bg-gray-800 inline-block transition-colors"
+                  >
+                    Contact Sales
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Volume Discount Info */}
+          <div className="mt-12 text-center">
+            <div className="bg-blue-50 rounded-lg p-6 max-w-2xl mx-auto">
+              <h3 className="text-lg font-semibold text-blue-900 mb-2">
+                Volume Discounts Available
+              </h3>
+              <p className="text-blue-700">
+                Save more as your team grows. Contact our sales team for custom pricing on 20+ users.
+                We work with businesses of all sizes to find the perfect solution.
+              </p>
+              <div className="mt-4">
+                <a
+                  href="mailto:sales@timetracker.com"
+                  className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  Get Custom Pricing
+                  <ArrowRight className="ml-1 h-4 w-4" />
+                </a>
               </div>
             </div>
           </div>
