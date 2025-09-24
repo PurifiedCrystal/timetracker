@@ -24,7 +24,8 @@
       "Bash(netlify:*)",
       "Bash(node:*)",
       "Bash(npx playwright:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "WebFetch(domain:timetracker-20250924.netlify.app)"
     ],
     "deny": [],
     "ask": []
