@@ -16,33 +16,33 @@ import {
 const features = [
   {
     icon: Clock,
-    name: 'Employee Time Tracking',
-    description: 'Accurate time tracking for your team with one-click clock in/out functionality.',
+    name: 'Simple Time Tracking',
+    description: 'One-click clock in/out with cheat-proof server timestamps that employees can\'t manipulate.',
   },
   {
     icon: BarChart3,
-    name: 'Payroll Ready Reports',
-    description: 'Generate detailed reports for payroll processing and labor cost analysis.',
+    name: 'Basic Reports',
+    description: 'View daily, weekly summaries and export to CSV for payroll processing.',
   },
   {
     icon: FileDown,
-    name: 'Multiple Export Formats',
-    description: 'Export to CSV, PDF, and Excel for seamless integration with your accounting software.',
+    name: 'CSV Export',
+    description: 'Export time records to CSV format for easy integration with your accounting software.',
   },
   {
     icon: Shield,
-    name: 'Labor Law Compliance',
-    description: 'Automatic overtime calculations and break tracking to ensure compliance.',
+    name: 'California Overtime Tracking',
+    description: 'Automatic overtime calculations following California labor laws (more states coming soon).',
   },
   {
     icon: Zap,
-    name: 'Real-time Monitoring',
-    description: 'Monitor your team\'s productivity and project time allocation in real-time.',
+    name: 'Live Session Tracking',
+    description: 'See active time sessions with real-time duration updates.',
   },
   {
     icon: CheckCircle,
-    name: 'Reliable & Secure',
-    description: 'Enterprise-grade security with 99.9% uptime guarantee for your business.',
+    name: 'Secure & Honest',
+    description: 'Built with secure authentication and honest features - no false promises.',
   },
 ];
 
@@ -124,18 +124,22 @@ export default function LandingPage() {
                 View Pricing
               </Link>
             </div>
-            <div className="mt-8 flex flex-wrap justify-center gap-8 text-sm text-gray-600">
+            <div className="mt-8 flex flex-wrap justify-center gap-6 text-sm text-gray-600">
               <span className="flex items-center">
                 <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
                 No setup fees
               </span>
               <span className="flex items-center">
                 <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                Cancel anytime
+                No credit card required
               </span>
               <span className="flex items-center">
                 <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                30-day free trial
+                14-day free trial
+              </span>
+              <span className="flex items-center">
+                <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                Cancel anytime
               </span>
               <span className="flex items-center">
                 <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
@@ -228,12 +232,12 @@ export default function LandingPage() {
                 <ul className="space-y-4">
                   {[
                     'Unlimited time tracking per user',
-                    'Payroll-ready reports',
-                    'CSV, PDF, Excel exports',
-                    'Labor law compliance',
-                    'Real-time monitoring',
+                    '🛡️ Cheat-proof server timestamps',
+                    'Basic reports & CSV export',
+                    'California overtime tracking',
+                    'Live session monitoring',
                     'Email support',
-                    'Mobile app access'
+                    'Web-based access'
                   ].map((feature) => (
                     <li key={feature} className="flex items-center">
                       <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
@@ -246,20 +250,20 @@ export default function LandingPage() {
                     href="/signup"
                     className="w-full bg-blue-600 text-white rounded-md px-4 py-3 text-center font-medium hover:bg-blue-700 inline-block transition-colors"
                   >
-                    Start 30-Day Free Trial
+                    Start 14-Day Free Trial
                   </Link>
                 </div>
               </div>
             </div>
 
             {/* Enterprise Plan */}
-            <div className="bg-white rounded-lg shadow-lg overflow-hidden border-2 border-blue-500 relative">
-              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                <span className="bg-blue-500 text-white px-4 py-1 text-sm font-medium rounded-full">
+            <div className="bg-white rounded-lg shadow-lg overflow-hidden border-2 border-blue-500 relative mt-8">
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                <span className="bg-blue-500 text-white px-4 py-2 text-sm font-medium rounded-full shadow-lg">
                   MOST POPULAR
                 </span>
               </div>
-              <div className="px-6 py-8 bg-gray-900 text-center">
+              <div className="px-6 py-8 bg-gray-900 text-center pt-12">
                 <h3 className="text-2xl font-extrabold text-white">Enterprise</h3>
                 <div className="mt-4 flex items-baseline justify-center">
                   <span className="text-3xl font-extrabold text-white">Volume</span>
@@ -273,10 +277,10 @@ export default function LandingPage() {
                     'Everything in Standard plan',
                     'Custom pricing for 20+ users',
                     'Priority phone support',
-                    'Advanced reporting & analytics',
-                    'Custom integrations',
-                    'Dedicated account manager',
-                    'SLA guarantee'
+                    'Custom feature development',
+                    'Additional state labor laws',
+                    'API integrations',
+                    'Dedicated account manager'
                   ].map((feature) => (
                     <li key={feature} className="flex items-center">
                       <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
