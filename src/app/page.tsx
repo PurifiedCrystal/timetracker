@@ -217,7 +217,7 @@ export default function LandingPage() {
               Scale with confidence. No hidden fees, no setup costs.
             </p>
           </div>
-          <div className="mt-16 grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="mt-16 grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-4xl mx-auto items-start">
             {/* Standard Plan */}
             <div className="bg-white rounded-lg shadow-lg overflow-hidden">
               <div className="px-6 py-8 bg-blue-600 text-center">
@@ -257,13 +257,13 @@ export default function LandingPage() {
             </div>
 
             {/* Enterprise Plan */}
-            <div className="bg-white rounded-lg shadow-lg overflow-hidden border-2 border-blue-500 relative mt-8">
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <span className="bg-blue-500 text-white px-4 py-2 text-sm font-medium rounded-full shadow-lg">
+            <div className="bg-white rounded-lg shadow-lg overflow-visible border-2 border-blue-500 relative">
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+                <span className="bg-blue-500 text-white px-4 py-1 text-sm font-medium rounded-full shadow-lg whitespace-nowrap">
                   MOST POPULAR
                 </span>
               </div>
-              <div className="px-6 py-8 bg-gray-900 text-center pt-12">
+              <div className="px-6 py-8 bg-gray-900 text-center pt-10">
                 <h3 className="text-2xl font-extrabold text-white">Enterprise</h3>
                 <div className="mt-4 flex items-baseline justify-center">
                   <span className="text-3xl font-extrabold text-white">Volume</span>
