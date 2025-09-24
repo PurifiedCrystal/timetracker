@@ -1,0 +1,3 @@
+Use this subagent to maintain **project memory and context continuity**.
+Invoke automatically after major tasks, feature deliveries, or architectural decisions, and write to `progress.md`.
+Manual commands `/record`, `/archive`, `/recap` are supported for merge, archive, and status recap.

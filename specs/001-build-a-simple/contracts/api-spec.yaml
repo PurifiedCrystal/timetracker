@@ -1,0 +1,530 @@
+openapi: 3.0.3
+info:
+  title: Time Tracker API
+  description: API for time tracking application with subscription service
+  version: 1.0.0
+
+servers:
+  - url: /api/v1
+    description: API routes
+
+paths:
+  /auth/session:
+    get:
+      summary: Get current user session
+      responses:
+        '200':
+          description: Current user session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSession'
+        '401':
+          description: Not authenticated
+
+  /profile:
+    get:
+      summary: Get user profile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User profile data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+
+    patch:
+      summary: Update user profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdate'
+      responses:
+        '200':
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+
+  /time-entries:
+    get:
+      summary: Get user's time entries
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: List of time entries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TimeEntry'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+    post:
+      summary: Create new time entry (clock in)
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClockInRequest'
+      responses:
+        '201':
+          description: Time entry created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeEntry'
+        '400':
+          description: User already clocked in
+
+  /time-entries/{id}:
+    patch:
+      summary: Update time entry (clock out)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClockOutRequest'
+      responses:
+        '200':
+          description: Time entry updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeEntry'
+
+  /time-entries/active:
+    get:
+      summary: Get current active time entry
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Active time entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeEntry'
+        '204':
+          description: No active time entry
+
+  /subscription:
+    get:
+      summary: Get subscription status
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Subscription details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+
+    post:
+      summary: Create subscription checkout session
+      security:
+        - bearerAuth: []
+      responses:
+        '201':
+          description: Checkout session created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  checkout_url:
+                    type: string
+                    format: uri
+
+  /subscription/portal:
+    post:
+      summary: Create customer portal session
+      security:
+        - bearerAuth: []
+      responses:
+        '201':
+          description: Portal session created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  portal_url:
+                    type: string
+                    format: uri
+
+  /exports:
+    get:
+      summary: Get export configurations
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Export configurations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExportConfiguration'
+
+    post:
+      summary: Create export configuration
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateExportConfig'
+      responses:
+        '201':
+          description: Export configuration created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportConfiguration'
+
+  /exports/{id}:
+    put:
+      summary: Update export configuration
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateExportConfig'
+      responses:
+        '200':
+          description: Export configuration updated
+
+    delete:
+      summary: Delete export configuration
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Export configuration deleted
+
+  /exports/generate:
+    post:
+      summary: Generate manual export
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateExportRequest'
+      responses:
+        '201':
+          description: Export generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  download_url:
+                    type: string
+                    format: uri
+                  expires_at:
+                    type: string
+                    format: date-time
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    UserSession:
+      type: object
+      properties:
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            email:
+              type: string
+              format: email
+        access_token:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        location_state:
+          type: string
+          nullable: true
+        timezone:
+          type: string
+        export_preferences:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+
+    ProfileUpdate:
+      type: object
+      properties:
+        location_state:
+          type: string
+          nullable: true
+        timezone:
+          type: string
+        export_preferences:
+          type: object
+
+    TimeEntry:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        clock_in:
+          type: string
+          format: date-time
+        clock_out:
+          type: string
+          format: date-time
+          nullable: true
+        duration_minutes:
+          type: integer
+          nullable: true
+        break_minutes:
+          type: integer
+        overtime_minutes:
+          type: integer
+        is_active:
+          type: boolean
+        metadata:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+
+    ClockInRequest:
+      type: object
+      properties:
+        metadata:
+          type: object
+          default: {}
+
+    ClockOutRequest:
+      type: object
+      properties:
+        clock_out:
+          type: string
+          format: date-time
+          default: "now"
+        break_minutes:
+          type: integer
+          default: 0
+
+    Subscription:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [active, past_due, canceled, incomplete]
+        current_period_start:
+          type: string
+          format: date-time
+        current_period_end:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+
+    ExportConfiguration:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        format:
+          type: string
+          enum: [csv, pdf, xlsx]
+        frequency:
+          type: string
+          enum: [daily, weekly, monthly]
+        schedule_time:
+          type: string
+          format: time
+        email_recipients:
+          type: array
+          items:
+            type: string
+            format: email
+        date_range_days:
+          type: integer
+        is_active:
+          type: boolean
+        last_sent_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    CreateExportConfig:
+      type: object
+      required: [name, format, frequency, schedule_time]
+      properties:
+        name:
+          type: string
+        format:
+          type: string
+          enum: [csv, pdf, xlsx]
+        frequency:
+          type: string
+          enum: [daily, weekly, monthly]
+        schedule_time:
+          type: string
+          format: time
+        email_recipients:
+          type: array
+          items:
+            type: string
+            format: email
+        date_range_days:
+          type: integer
+          default: 30
+        is_active:
+          type: boolean
+          default: true
+
+    UpdateExportConfig:
+      type: object
+      properties:
+        name:
+          type: string
+        schedule_time:
+          type: string
+          format: time
+        email_recipients:
+          type: array
+          items:
+            type: string
+            format: email
+        date_range_days:
+          type: integer
+        is_active:
+          type: boolean
+
+    GenerateExportRequest:
+      type: object
+      required: [format, start_date, end_date]
+      properties:
+        format:
+          type: string
+          enum: [csv, pdf, xlsx]
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        has_more:
+          type: boolean
+
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+        code:
+          type: string
+        details:
+          type: object
