@@ -74,7 +74,7 @@ export default function LandingPage() {
       <nav className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
-            <div className="flex items-center">
+            <div className="flex items-center justify-center flex-1 sm:justify-start sm:flex-initial">
               <Clock className="h-8 w-8 text-blue-600" />
               <span className="ml-2 text-xl font-bold text-gray-900">TimeTracker</span>
             </div>
@@ -126,23 +126,23 @@ export default function LandingPage() {
             </div>
             <div className="mt-8 flex flex-wrap justify-center gap-6 text-sm text-gray-600">
               <span className="flex items-center">
-                <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                <CheckCircle className="h-5 w-5 text-blue-500 mr-2" />
                 No setup fees
               </span>
               <span className="flex items-center">
-                <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                <CheckCircle className="h-5 w-5 text-blue-500 mr-2" />
                 No credit card required
               </span>
               <span className="flex items-center">
-                <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                <CheckCircle className="h-5 w-5 text-blue-500 mr-2" />
                 14-day free trial
               </span>
               <span className="flex items-center">
-                <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                <CheckCircle className="h-5 w-5 text-blue-500 mr-2" />
                 Cancel anytime
               </span>
               <span className="flex items-center">
-                <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                <CheckCircle className="h-5 w-5 text-blue-500 mr-2" />
                 Volume discounts available
               </span>
             </div>
@@ -240,7 +240,7 @@ export default function LandingPage() {
                     'Web-based access'
                   ].map((feature) => (
                     <li key={feature} className="flex items-center">
-                      <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
+                      <CheckCircle className="h-5 w-5 text-blue-500 mr-3" />
                       <span className="text-gray-700">{feature}</span>
                     </li>
                   ))}
@@ -283,7 +283,7 @@ export default function LandingPage() {
                     'Dedicated account manager'
                   ].map((feature) => (
                     <li key={feature} className="flex items-center">
-                      <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
+                      <CheckCircle className="h-5 w-5 text-blue-500 mr-3" />
                       <span className="text-gray-700">{feature}</span>
                     </li>
                   ))}

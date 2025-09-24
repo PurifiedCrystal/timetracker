@@ -19,7 +19,12 @@
       "Bash(git rm:*)",
       "Bash(git commit:*)",
       "Bash(git remote add:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(netlify deploy:*)",
+      "Bash(netlify:*)",
+      "Bash(node:*)",
+      "Bash(npx playwright:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

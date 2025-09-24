@@ -52,9 +52,9 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left Panel - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 to-blue-800 text-white p-12 flex-col justify-center">
-        <div className="max-w-md">
-          <div className="flex items-center mb-8">
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 to-blue-800 text-white p-12 flex-col justify-center items-center">
+        <div className="max-w-md text-center">
+          <div className="flex items-center justify-center mb-8">
             <Clock className="h-12 w-12 text-blue-100" />
             <span className="ml-3 text-3xl font-bold">TimeTracker</span>
           </div>

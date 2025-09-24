@@ -89,29 +89,29 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left Panel - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-green-600 to-green-800 text-white p-12 flex-col justify-center">
-        <div className="max-w-md">
-          <div className="flex items-center mb-8">
-            <Clock className="h-12 w-12 text-green-100" />
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 to-blue-800 text-white p-12 flex-col justify-center items-center">
+        <div className="max-w-md text-center">
+          <div className="flex items-center justify-center mb-8">
+            <Clock className="h-12 w-12 text-blue-100" />
             <span className="ml-3 text-3xl font-bold">TimeTracker</span>
           </div>
           <h1 className="text-4xl font-bold mb-6">
             Start tracking time in 30 seconds
           </h1>
-          <p className="text-xl text-green-100 mb-8">
+          <p className="text-xl text-blue-100 mb-8">
             Join thousands of professionals who trust TimeTracker for simple, reliable time tracking.
           </p>
-          <div className="space-y-4 text-green-100">
+          <div className="space-y-4 text-blue-100">
             <div className="flex items-center">
-              <CheckCircle className="h-5 w-5 text-green-300 mr-3" />
+              <CheckCircle className="h-5 w-5 text-blue-300 mr-3" />
               <span>Free 14-day trial, no credit card required</span>
             </div>
             <div className="flex items-center">
-              <CheckCircle className="h-5 w-5 text-green-300 mr-3" />
+              <CheckCircle className="h-5 w-5 text-blue-300 mr-3" />
               <span>Only $1.99/month after trial</span>
             </div>
             <div className="flex items-center">
-              <CheckCircle className="h-5 w-5 text-green-300 mr-3" />
+              <CheckCircle className="h-5 w-5 text-blue-300 mr-3" />
               <span>Cancel anytime, no commitment</span>
             </div>
           </div>
