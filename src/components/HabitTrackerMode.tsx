@@ -413,53 +413,39 @@ export const HabitTrackerMode = React.memo(() => {
             const isCustomHabit = customHabits.some(ch => ch.id === habit.id);
 
             return (
-              <div
+              <button
                 key={habit.id || index}
-                className={`flex items-center p-3 rounded-xl border-2 transition-all ${
+                onClick={() => {
+                  if (isCompleted) {
+                    removeHabitEntry(habit.name);
+                  } else {
+                    logHabit(habit.name, habit.category, habit.type, habit.target);
+                  }
+                }}
+                className={`w-full flex items-center p-3 rounded-xl border-2 transition-all hover:scale-[1.02] active:scale-95 ${
                   isCompleted
-                    ? 'bg-green-100 border-green-300'
-                    : 'bg-gray-50 border-transparent'
+                    ? 'bg-green-100 border-green-300 hover:bg-green-200'
+                    : 'bg-gray-50 border-transparent hover:bg-gray-100'
                 }`}
               >
                 <span className="text-2xl mr-3">{habit.icon}</span>
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 text-left">
                   <div className="flex items-center justify-between">
                     <div className="font-medium text-gray-900 text-sm truncate">
                       {habit.name}
                     </div>
-                    <div className="flex items-center space-x-2">
-                      {isCompleted ? (
-                        <>
-                          <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
-                          <button
-                            onClick={() => removeHabitEntry(habit.name)}
-                            className="p-1 text-red-600 hover:bg-red-100 rounded-full transition-colors"
-                            title="Undo log"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            onClick={() => logHabit(habit.name, habit.category, habit.type, habit.target)}
-                            className="p-1 text-gray-600 hover:bg-gray-200 rounded-full transition-colors"
-                            title="Log habit"
-                          >
-                            <Circle className="h-4 w-4" />
-                          </button>
-                        </>
-                      )}
-                      {isCustomHabit && (
-                        <button
-                          onClick={() => deleteCustomHabit(habit.id, habit.name)}
-                          className="p-1 text-red-600 hover:bg-red-100 rounded-full transition-colors"
-                          title="Delete habit"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </button>
-                      )}
-                    </div>
+                    {isCustomHabit && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteCustomHabit(habit.id, habit.name);
+                        }}
+                        className="p-1 text-red-600 hover:bg-red-100 rounded-full transition-colors"
+                        title="Delete habit"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    )}
                   </div>
                   <div className="text-xs text-gray-500">
                     {isCompleted ? (
@@ -469,11 +455,11 @@ export const HabitTrackerMode = React.memo(() => {
                         'Completed today!'
                       )
                     ) : (
-                      'Tap circle to log'
+                      'Tap to log'
                     )}
                   </div>
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>

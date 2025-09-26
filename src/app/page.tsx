@@ -293,7 +293,9 @@ export default function LandingPage() {
                   ].map((feature) => (
                     <li key={feature} className="flex items-center">
                       <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
-                      <span className="text-gray-700">{feature}</span>
+                      <span className={feature === 'No personal time tracking' ? 'text-gray-700 underline' : 'text-gray-700'}>
+                        {feature}
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -310,12 +312,7 @@ export default function LandingPage() {
 
             {/* Enterprise Plan */}
             <div className="bg-white rounded-lg shadow-lg overflow-visible border-2 border-blue-500 relative">
-              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-                <span className="bg-blue-500 text-white px-4 py-1 text-sm font-medium rounded-full shadow-lg whitespace-nowrap">
-                  MOST POPULAR
-                </span>
-              </div>
-              <div className="px-6 py-8 bg-gray-900 text-center pt-10">
+              <div className="px-6 py-8 bg-gray-900 text-center">
                 <h3 className="text-2xl font-extrabold text-white">Enterprise</h3>
                 <div className="mt-4 flex items-baseline justify-center">
                   <span className="text-3xl font-extrabold text-white">Volume</span>

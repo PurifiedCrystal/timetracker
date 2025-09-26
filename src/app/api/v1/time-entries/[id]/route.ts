@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@/lib/supabase-server';
 import { timeEntries } from '@/lib/database';
-import { clearActiveSession } from '@/lib/mock-session';
+import { clearActiveSession, updateTimeEntry } from '@/lib/mock-session';
 
 export async function GET(
   request: NextRequest,
@@ -63,31 +63,34 @@ export async function PATCH(
     const body = await request.json();
     const entryId = params.id;
 
-    // TEMPORARY: Skip database operations, use mock data for testing
-    console.log('Clock out requested for entry:', entryId, 'body:', body);
-
-    // Create mock updated entry for clock out
-    const mockUpdatedEntry = {
-      id: entryId,
-      user_id: user.id,
-      clock_in: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
-      clock_out: body.clock_out || new Date().toISOString(),
-      duration_minutes: 120, // 2 hours
-      break_minutes: body.break_minutes || 0,
-      metadata: {},
-      group_id: null,
-      created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    // Update the time entry in mock storage
+    const updatedEntry = updateTimeEntry(entryId, {
+      ...body,
       updated_at: new Date().toISOString()
-    };
-
-    console.log('Returning mock clocked out entry:', mockUpdatedEntry);
-
-    // Clear the active session when clocking out
-    clearActiveSession();
-
-    return NextResponse.json({
-      entry: mockUpdatedEntry
     });
+
+    if (updatedEntry) {
+      console.log('Updated time entry:', updatedEntry);
+
+      // Calculate duration if clocking out
+      if (body.clock_out && updatedEntry.clock_in) {
+        const clockIn = new Date(updatedEntry.clock_in);
+        const clockOut = new Date(body.clock_out);
+        const durationMs = clockOut.getTime() - clockIn.getTime();
+        const durationMinutes = Math.floor(durationMs / (1000 * 60));
+
+        updatedEntry.duration_minutes = durationMinutes;
+      }
+
+      return NextResponse.json({
+        entry: updatedEntry
+      });
+    } else {
+      return NextResponse.json(
+        { error: 'Time entry not found' },
+        { status: 404 }
+      );
+    }
 
   } catch (error) {
     console.error('Update time entry API error:', error);

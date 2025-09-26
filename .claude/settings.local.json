@@ -95,7 +95,10 @@
       "Bash(.specify/scripts/powershell/create-new-feature.ps1 -Json \"i want to create a cute mascot for this program\")",
       "Bash(git checkout:*)",
       "Bash(netstat:*)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(pkill:*)",
+      "Bash(..specifyscriptspowershellcheck-prerequisites.ps1 -Json -RequireTasks -IncludeTasks)",
+      "Bash(.specify/scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks)"
     ],
     "deny": [],
     "ask": []

@@ -16,76 +16,236 @@ A modern time tracking application built with Next.js, Supabase, and Stripe. Fea
 ### Prerequisites
 
 - Node.js 18+
+- npm or yarn
 - A Supabase account
 - A Stripe account (for payments)
+- Docker (optional, for containerized development)
 
-### Environment Variables
+### Option 1: Standard Setup
 
+#### 1. Clone and Install
+```bash
+git clone <repository-url>
+cd timetracker
+npm install
+```
+
+#### 2. Environment Variables
 Create a `.env.local` file with:
 
 ```env
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 
-# Stripe
-STRIPE_SECRET_KEY=your_stripe_secret_key
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
-STRIPE_WEBHOOK_SECRET=your_webhook_secret
-STRIPE_PRICE_ID=your_price_id
+# Stripe Configuration
+STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your_publishable_key
+STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret
+STRIPE_PRICE_ID=price_your_subscription_price_id
 
-# App URL
+# Security
+JWT_SECRET=your_jwt_secret_min_32_characters
+ENCRYPTION_KEY=your_encryption_key_32_characters
+
+# Application URLs
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 NEXTAUTH_URL=http://localhost:3000
+
+# Optional: Monitoring
+SENTRY_DSN=your_sentry_dsn_for_error_tracking
 ```
 
-### Database Setup
-
-1. Create a new Supabase project
-2. Run the SQL schema from `database/schema.sql` in your Supabase SQL editor
-3. Enable Row Level Security policies
-
-### Local Development
-
+#### 3. Database Setup
 ```bash
-# Install dependencies
-npm install
+# Run database setup script
+npm run db:setup
 
-# Run development server
+# Or manually in Supabase SQL editor:
+# 1. Go to your Supabase project dashboard
+# 2. Navigate to SQL Editor
+# 3. Run the content of database/schema.sql
+# 4. Enable Row Level Security in Authentication > Settings
+```
+
+#### 4. Stripe Configuration
+1. Create a Stripe account and get your API keys
+2. Create a product with $1.99/month recurring pricing
+3. Set up webhook endpoint: `https://yourdomain.com/api/webhooks/stripe`
+4. Enable webhook events: `customer.subscription.*`, `invoice.*`
+
+#### 5. Development Server
+```bash
+# Start development server
 npm run dev
+
+# Or with type checking
+npm run dev & npm run type-check --watch
 ```
 
 Open [http://localhost:3000](http://localhost:3000) to view the app.
 
-## 🌐 Deployment to Netlify
+### Option 2: Docker Setup
 
-### 1. Connect Repository
-- Push your code to GitHub
-- Connect the repository to Netlify
+#### 1. Using Docker Compose
+```bash
+# Copy environment file
+cp .env.example .env.local
+# Edit .env.local with your values
 
-### 2. Configure Build Settings
-- Build command: `npm run build`
-- Publish directory: `.next`
+# Start all services
+docker-compose up -d
 
-### 3. Environment Variables
-Add all environment variables from `.env.local` to Netlify:
-- Go to Site settings → Environment variables
-- Add each variable with production values
+# View logs
+docker-compose logs -f app
 
-### 4. Supabase Setup
-```sql
--- Run this in your Supabase SQL editor
--- (The complete schema is in database/schema.sql)
+# Stop services
+docker-compose down
 ```
 
-### 5. Stripe Configuration
-- Create a product with $1.99/month pricing
-- Set up webhook endpoints pointing to your Netlify domain
-- Configure webhook events: `customer.subscription.*`, `invoice.*`
+#### 2. Production-like Docker Setup
+```bash
+# Build and run with nginx
+docker-compose --profile production up -d
+```
 
-### 6. Deploy
-- Netlify will automatically deploy on every push to main branch
-- Your app will be available at `https://your-app-name.netlify.app`
+The app will be available at:
+- Development: http://localhost:3000
+- With nginx: http://localhost:80
+
+## 🌐 Production Deployment
+
+### Option 1: Vercel (Recommended)
+
+#### 1. Vercel Setup
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy to Vercel
+vercel --prod
+
+# Or connect GitHub repository through Vercel dashboard
+```
+
+#### 2. Environment Variables
+Add all production environment variables in Vercel dashboard:
+- Go to Project → Settings → Environment Variables
+- Add each variable with production values
+- Ensure NODE_ENV is set to "production"
+
+#### 3. Custom Domain
+- Add your custom domain in Vercel dashboard
+- Configure DNS settings as instructed
+- SSL certificate is automatically provisioned
+
+### Option 2: Netlify
+
+#### 1. Connect Repository
+```bash
+# Build and deploy manually
+npm run build
+netlify deploy --prod
+
+# Or connect via Netlify dashboard
+```
+
+#### 2. Build Configuration
+- Build command: `npm run build`
+- Publish directory: `.next`
+- Functions directory: `netlify/functions`
+
+#### 3. Environment Variables
+Add all environment variables in Netlify dashboard:
+- Site settings → Environment variables
+- Ensure all production values are set
+
+### Option 3: Docker Production Deployment
+
+#### 1. Build Production Image
+```bash
+# Build optimized production image
+docker build -t timetracker-prod .
+
+# Run in production mode
+docker run -p 3000:3000 --env-file .env.production timetracker-prod
+```
+
+#### 2. Docker Compose Production
+```bash
+# Use production profile with nginx
+docker-compose --profile production up -d
+
+# Scale application instances
+docker-compose --profile production up -d --scale app=3
+```
+
+#### 3. Kubernetes Deployment (Advanced)
+```yaml
+# See kubernetes/ directory for full k8s manifests
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: timetracker
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: timetracker
+  template:
+    metadata:
+      labels:
+        app: timetracker
+    spec:
+      containers:
+      - name: timetracker
+        image: timetracker:latest
+        ports:
+        - containerPort: 3000
+```
+
+## 🔧 Production Configuration
+
+### Environment Variables Checklist
+- [ ] `NEXT_PUBLIC_SUPABASE_URL` (Production Supabase URL)
+- [ ] `NEXT_PUBLIC_SUPABASE_ANON_KEY` (Production Supabase anon key)
+- [ ] `SUPABASE_SERVICE_ROLE_KEY` (Production service role key)
+- [ ] `STRIPE_SECRET_KEY` (Live Stripe secret key)
+- [ ] `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (Live Stripe publishable key)
+- [ ] `STRIPE_WEBHOOK_SECRET` (Production webhook secret)
+- [ ] `STRIPE_PRICE_ID` (Live price ID)
+- [ ] `JWT_SECRET` (Strong 32+ character secret)
+- [ ] `ENCRYPTION_KEY` (Strong 32+ character key)
+- [ ] `NEXT_PUBLIC_APP_URL` (Production domain)
+- [ ] `SENTRY_DSN` (Optional: Error tracking)
+
+### Security Checklist
+- [ ] Enable HTTPS enforcement
+- [ ] Configure security headers (CSP, HSTS, etc.)
+- [ ] Set up rate limiting
+- [ ] Enable Supabase Row Level Security
+- [ ] Configure CORS policies
+- [ ] Set up monitoring and alerting
+- [ ] Regular security audits
+- [ ] Backup strategy for database
+
+### Performance Optimization
+- [ ] Enable CDN for static assets
+- [ ] Configure image optimization
+- [ ] Set up database connection pooling
+- [ ] Enable gzip compression
+- [ ] Configure caching headers
+- [ ] Set up monitoring for Core Web Vitals
+- [ ] Database query optimization
+
+### Monitoring Setup
+- [ ] Error tracking (Sentry)
+- [ ] Performance monitoring (Core Web Vitals)
+- [ ] Uptime monitoring
+- [ ] Database performance monitoring
+- [ ] User analytics (optional)
+- [ ] Log aggregation
 
 ## 📊 Database Schema
 
