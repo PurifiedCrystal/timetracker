@@ -75,6 +75,7 @@ export async function POST(request: NextRequest) {
       authData.user.id,
       email,
       {
+        email: email,
         timezone: timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
         location_state: location_state?.toUpperCase() || null
       }

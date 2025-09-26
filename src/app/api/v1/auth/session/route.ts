@@ -1,21 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@/lib/supabase-server';
+import { MockDataService } from '@/lib/mock-data';
 
 export async function GET(request: NextRequest) {
   try {
     const supabase = createRouteHandlerClient();
 
-    // Get the current user session
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    // Get the current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-    if (sessionError) {
+    if (authError) {
       return NextResponse.json(
-        { error: 'Failed to get session' },
+        { error: 'Failed to get user' },
         { status: 500 }
       );
     }
 
-    if (!session) {
+    if (!user) {
       return NextResponse.json(
         {
           user: null,
@@ -26,29 +27,21 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get user profile information
-    const { data: profile } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('id', session.user.id)
-      .single();
+    // Get user profile information using mock service
+    const { data: profile } = await MockDataService.getUserProfile(user.id);
 
-    // Get subscription status
-    const { data: subscription } = await supabase
-      .from('subscriptions')
-      .select('status')
-      .eq('user_id', session.user.id)
-      .maybeSingle();
+    // Get subscription status using mock service
+    const { data: subscription } = await MockDataService.getSubscription(user.id);
 
     return NextResponse.json({
       user: {
-        id: session.user.id,
-        email: session.user.email,
+        id: user.id,
+        email: user.email,
         profile: profile || null
       },
       session: {
-        access_token: session.access_token,
-        expires_at: session.expires_at
+        access_token: 'mock_access_token',
+        expires_at: Date.now() + 3600000 // 1 hour from now
       },
       subscription_status: subscription ? (subscription as any).status : null
     });

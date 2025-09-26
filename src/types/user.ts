@@ -7,24 +7,35 @@ export interface User {
 
 export interface UserProfile {
   id: string;
+  full_name?: string;
+  email?: string;
   location_state: string | null;
   timezone: string;
   export_preferences: Record<string, any>;
+  california_mode: boolean; // New field for California labor law compliance
+  tracking_mode: 'work' | 'habits'; // New field for dual-mode tracking
   created_at: string;
   updated_at: string;
 }
 
 export interface CreateUserProfileData {
   id: string;
+  email?: string;
+  full_name?: string;
   location_state?: string | null;
   timezone?: string;
   export_preferences?: Record<string, any>;
+  california_mode?: boolean;
+  tracking_mode?: 'work' | 'habits';
 }
 
 export interface UpdateUserProfileData {
+  full_name?: string;
   location_state?: string | null;
   timezone?: string;
   export_preferences?: Record<string, any>;
+  california_mode?: boolean;
+  tracking_mode?: 'work' | 'habits';
 }
 
 export interface UserWithProfile extends User {

@@ -6,6 +6,7 @@ export interface TimeEntry {
   duration_minutes: number | null; // Computed field
   break_minutes: number;
   overtime_minutes: number;
+  group_id: string | null; // New field for group assignment
   metadata: Record<string, any>;
   created_at: string;
   updated_at: string;
@@ -14,6 +15,7 @@ export interface TimeEntry {
 export interface CreateTimeEntryData {
   user_id: string;
   clock_in?: string; // Defaults to current time if not provided
+  group_id?: string | null; // Optional group assignment
   metadata?: Record<string, any>;
 }
 
@@ -25,6 +27,7 @@ export interface UpdateTimeEntryData {
 }
 
 export interface ClockInRequest {
+  group_id?: string | null; // Optional group assignment
   metadata?: Record<string, any>;
 }
 

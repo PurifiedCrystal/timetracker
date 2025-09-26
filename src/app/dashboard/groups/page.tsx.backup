@@ -1,0 +1,322 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { Users, Plus, UserCheck, ArrowLeft, Settings, Mail, Crown, UserMinus, BarChart3 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import type { GroupWithMembers, GroupMember } from '@/types/group';
+
+export default function GroupsPage() {
+  const router = useRouter();
+  const supabase = createClientComponentClient();
+
+  const [groups, setGroups] = useState<GroupWithMembers[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showInviteForm, setShowInviteForm] = useState<string | null>(null);
+  const [newGroupName, setNewGroupName] = useState('');
+  const [newGroupDescription, setNewGroupDescription] = useState('');
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadUserAndGroups();
+  }, []);
+
+  const loadUserAndGroups = async () => {
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error || !user) {
+        router.push('/auth/signin');
+        return;
+      }
+
+      setUserId(user.id);
+      await loadGroups(user.id);
+    } catch (error) {
+      console.error('Error loading user and groups:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadGroups = async (currentUserId: string) => {
+    try {
+      const response = await fetch('/api/v1/groups');
+      if (!response.ok) throw new Error('Failed to load groups');
+
+      const result = await response.json();
+      setGroups(result.groups || []);
+    } catch (error) {
+      console.error('Error loading groups:', error);
+    }
+  };
+
+  const createGroup = async () => {
+    if (!newGroupName.trim()) return;
+
+    try {
+      const response = await fetch('/api/v1/groups', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newGroupName,
+          description: newGroupDescription || null,
+          max_members: 10
+        })
+      });
+
+      if (response.ok) {
+        setNewGroupName('');
+        setNewGroupDescription('');
+        setShowCreateForm(false);
+        if (userId) await loadGroups(userId);
+      }
+    } catch (error) {
+      console.error('Error creating group:', error);
+    }
+  };
+
+  const inviteMember = async (groupId: string) => {
+    if (!inviteEmail.trim()) return;
+
+    try {
+      // For now, we'll simulate invitation by showing success
+      // In a full implementation, you'd send an email invitation
+      alert(`Invitation sent to ${inviteEmail}`);
+      setInviteEmail('');
+      setShowInviteForm(null);
+    } catch (error) {
+      console.error('Error inviting member:', error);
+    }
+  };
+
+  const removeMember = async (groupId: string, memberId: string) => {
+    try {
+      const response = await fetch(`/api/v1/groups/${groupId}/members/${memberId}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok && userId) {
+        await loadGroups(userId);
+      }
+    } catch (error) {
+      console.error('Error removing member:', error);
+    }
+  };
+
+  const isManager = (group: GroupWithMembers) => group.manager_id === userId;
+
+  if (loading) {
+    return (
+      <div className="pb-20 max-w-md mx-auto">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-gray-500">Loading groups...</div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="pb-20 max-w-md mx-auto lg:max-w-4xl lg:px-8">
+      {/* Back Navigation */}
+      <div className="mb-6">
+        <button
+          onClick={() => router.push('/dashboard')}
+          className="flex items-center text-blue-600 hover:text-blue-700 transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Dashboard
+        </button>
+      </div>
+
+      {/* Header */}
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">My Groups</h1>
+          <p className="text-gray-600">Manage your team groups</p>
+        </div>
+        <button
+          onClick={() => setShowCreateForm(true)}
+          className="w-12 h-12 bg-blue-600 hover:bg-blue-700 rounded-full flex items-center justify-center text-white transition-colors"
+        >
+          <Plus className="h-6 w-6" />
+        </button>
+      </div>
+
+      {/* Create Group Form */}
+      {showCreateForm && (
+        <div className="mb-6">
+          <div className="bg-white rounded-2xl shadow-lg p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Create New Group</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Group Name
+                </label>
+                <input
+                  type="text"
+                  value={newGroupName}
+                  onChange={(e) => setNewGroupName(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter group name"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description (Optional)
+                </label>
+                <textarea
+                  value={newGroupDescription}
+                  onChange={(e) => setNewGroupDescription(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  placeholder="Brief description"
+                  rows={2}
+                />
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  onClick={createGroup}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                >
+                  Create Group
+                </button>
+                <button
+                  onClick={() => setShowCreateForm(false)}
+                  className="flex-1 border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Groups List */}
+      {groups.length === 0 ? (
+        <div className="bg-white rounded-2xl shadow-lg p-8">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Users className="h-8 w-8 text-blue-600" />
+            </div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">No Groups Yet</h2>
+            <p className="text-gray-600 mb-4">
+              Create your first group to start collaborating with your team.
+            </p>
+            <button
+              onClick={() => setShowCreateForm(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors inline-flex items-center"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Create First Group
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {groups.map((group) => (
+            <div key={group.id} className="bg-white rounded-2xl shadow-lg p-6">
+              {/* Group Header */}
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <div className="flex items-center mb-1">
+                    <h3 className="text-lg font-semibold text-gray-900">{group.name}</h3>
+                    {isManager(group) && (
+                      <Crown className="h-4 w-4 text-yellow-500 ml-2" />
+                    )}
+                  </div>
+                  {group.description && (
+                    <p className="text-gray-600 text-sm mb-2">{group.description}</p>
+                  )}
+                  <p className="text-gray-500 text-sm">
+                    {group.member_count} member{group.member_count !== 1 ? 's' : ''}
+                  </p>
+                </div>
+                <div className="flex space-x-2">
+                  {isManager(group) && (
+                    <>
+                      <button
+                        onClick={() => setShowInviteForm(group.id)}
+                        className="w-10 h-10 bg-blue-100 hover:bg-blue-200 text-blue-600 rounded-full flex items-center justify-center transition-colors"
+                        title="Invite Member"
+                      >
+                        <Mail className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => router.push(`/dashboard/reports/group/${group.id}`)}
+                        className="w-10 h-10 bg-green-100 hover:bg-green-200 text-green-600 rounded-full flex items-center justify-center transition-colors"
+                        title="View Reports"
+                      >
+                        <BarChart3 className="h-4 w-4" />
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Invite Form */}
+              {showInviteForm === group.id && (
+                <div className="mb-4 p-4 bg-blue-50 rounded-lg">
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">Invite Member</h4>
+                  <div className="flex space-x-2">
+                    <input
+                      type="email"
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                      className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter email address"
+                    />
+                    <button
+                      onClick={() => inviteMember(group.id)}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                    >
+                      Send
+                    </button>
+                    <button
+                      onClick={() => setShowInviteForm(null)}
+                      className="border border-gray-300 hover:bg-gray-50 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Members List */}
+              {group.memberships && group.memberships.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium text-gray-700">Members</h4>
+                  {group.memberships.map((membership: any) => (
+                    <div key={membership.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                      <div className="flex items-center">
+                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                          <Users className="h-4 w-4 text-blue-600" />
+                        </div>
+                        <div className="ml-3">
+                          <p className="text-sm font-medium text-gray-900">
+                            {membership.user_profiles?.full_name || membership.user_profiles?.email || membership.full_name || membership.email || 'Unknown User'}
+                          </p>
+                          <p className="text-xs text-gray-500 capitalize">{membership.role}</p>
+                        </div>
+                      </div>
+                      {isManager(group) && membership.user_id !== userId && (
+                        <button
+                          onClick={() => removeMember(group.id, membership.id)}
+                          className="w-6 h-6 text-red-500 hover:text-red-700 transition-colors"
+                          title="Remove Member"
+                        >
+                          <UserMinus className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

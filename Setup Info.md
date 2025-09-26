@@ -10,10 +10,17 @@ b@UuEUQ@k7$P%8
 ## supabase log in 
 careprojecthomes@gmail.com
 BppXu75rao9d!4
+
+database password
+BppXu75rao9d!4
+
 Project is CareProject
 https://supabase.com/dashboard/project/kgwklydkmeihoulipqof
 URL
 https://kgwklydkmeihoulipqof.supabase.co
+
+Project ID
+kgwklydkmeihoulipqof
 
 Legacy API
 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtnd2tseWRrbWVpaG91bGlwcW9mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg3MjgwOTksImV4cCI6MjA3NDMwNDA5OX0.SVsGhRHEcRCArfKYwHbw2tWDfoF1JG8kaUm1cIgIOB4
@@ -29,3 +36,7 @@ sb_secret_Cts1rHq8PkZoxVkP7LtiIQ_6k6EUVJm
 
 Legacy JWT secrete
 PtfTgy/295dQFCV6mEcOvngPMKCLw9u+DKoAEXX3ey/zrjxLGiYfhrV6WnIA2sLW98HuUmFajxPtLwJow7ghZg==
+
+Access tokens
+https://supabase.com/dashboard/account/tokens
+sbp_ae79eeff07b1ef3eaec6ef04786e72e31896c642

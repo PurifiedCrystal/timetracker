@@ -7,8 +7,8 @@ export async function GET(request: NextRequest) {
     const supabase = createRouteHandlerClient();
 
     // Get current user
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user profile
-    const { data: profile, error } = await UserService.getProfile(session.user.id);
+    const { data: profile, error } = await UserService.getProfile(user.id);
 
     if (error) {
       if (error.includes('not found')) {
@@ -49,8 +49,8 @@ export async function PATCH(request: NextRequest) {
     const supabase = createRouteHandlerClient();
 
     // Get current user
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -86,7 +86,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Update profile
-    const { data: profile, error } = await UserService.updateProfile(session.user.id, updates);
+    const { data: profile, error } = await UserService.updateProfile(user.id, updates);
 
     if (error) {
       return NextResponse.json(

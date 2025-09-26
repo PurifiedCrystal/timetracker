@@ -1,0 +1,32 @@
+{
+  "mcpServers": {
+    "n8n-mcp": {
+      "command": "npx",
+      "args": ["n8n-mcp"],
+      "env": {
+        "MCP_MODE": "stdio",
+        "LOG_LEVEL": "error",
+        "DISABLE_CONSOLE_OUTPUT": "true",
+        "N8N_API_URL": "https://n8n.nonelikeit.com/",
+        "N8N_API_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4NzRjMWMxZC00ZmVkLTRiMGEtYWNiNi0wZWMxMTI1YTJjY2QiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzU3NzQxNTA4fQ.Q6By8UQIcgUg2_x6T1z7cgq6F0LQ3FFVGA6AjG0A0jQ"
+      }
+    },
+    "supabase": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@supabase/mcp-server-supabase",
+        "--project-ref=kgwklydkmeihoulipqof"
+      ],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "sbp_ae79eeff07b1ef3eaec6ef04786e72e31896c642"
+      }
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"]
+    }
+  }
+}

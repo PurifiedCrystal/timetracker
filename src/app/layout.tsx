@@ -1,6 +1,7 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -28,8 +29,6 @@ export const metadata: Metadata = {
     description: 'Track your work hours with a clean, distraction-free interface.',
     images: ['/og-image.png'],
   },
-  viewport: 'width=device-width, initial-scale=1',
-  themeColor: '#2563eb',
   manifest: '/manifest.json',
   icons: {
     icon: [
@@ -43,6 +42,12 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: '#2563eb',
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -52,7 +57,9 @@ export default function RootLayout({
     <html lang="en" className="h-full bg-gray-50">
       <body className={`${inter.className} h-full`}>
         <div id="root" className="min-h-full">
-          {children}
+          <ErrorBoundary>
+            {children}
+          </ErrorBoundary>
         </div>
       </body>
     </html>

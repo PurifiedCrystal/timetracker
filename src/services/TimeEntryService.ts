@@ -1,4 +1,5 @@
 import { timeEntries } from '@/lib/database';
+import { createRouteHandlerClient } from '@/lib/supabase-server';
 import {
   TimeEntry,
   CreateTimeEntryData,
@@ -53,24 +54,37 @@ export class TimeEntryService {
    * Clock in - create new time entry
    */
   static async clockIn(userId: string, metadata: Record<string, any> = {}): Promise<{ data: TimeEntry | null; error: string | null }> {
-    // Check if user already has active time entry
-    const { data: activeEntry } = await this.getActiveTimeEntry(userId);
-    if (activeEntry) {
-      return { data: null, error: 'User already clocked in' };
+    try {
+      // Check if user already has active time entry
+      const { data: activeEntry } = await this.getActiveTimeEntry(userId);
+      if (activeEntry) {
+        return { data: null, error: 'User already clocked in' };
+      }
+
+      const clockInTime = new Date().toISOString();
+
+      // Use authenticated client for RLS compliance
+      const supabase = createRouteHandlerClient();
+      const { data: newEntry, error } = await supabase
+        .from('time_entries')
+        .insert([{
+          user_id: userId,
+          clock_in: clockInTime,
+          metadata,
+        }])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Clock in error:', error);
+        return { data: null, error: error.message };
+      }
+
+      return { data: newEntry as TimeEntry, error: null };
+    } catch (err) {
+      console.error('Clock in exception:', err);
+      return { data: null, error: 'Failed to clock in' };
     }
-
-    const clockInTime = new Date().toISOString();
-
-    const { data: newEntry, error } = await timeEntries.create(userId, {
-      clock_in: clockInTime,
-      metadata,
-    });
-
-    if (error) {
-      return { data: null, error };
-    }
-
-    return { data: newEntry as TimeEntry | null, error: null };
   }
 
   /**
