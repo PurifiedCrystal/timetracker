@@ -192,10 +192,10 @@ export class MockFetchHelper {
   /**
    * Get the mock fetch function
    */
-  getFetchMock(): jest.MockedFunction<typeof fetch> {
-    const fetchMock = jest.fn() as jest.MockedFunction<typeof fetch>;
+  getFetchMock(): any {
+    const fetchMock = (() => {}) as any;
 
-    fetchMock.mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+    fetchMock.implementation = async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = typeof input === 'string' ? input : input.toString();
 
       // Track call count
@@ -251,7 +251,7 @@ export class MockFetchHelper {
         status: 404,
         json: async () => ({ error: 'Not found' })
       } as Response;
-    });
+    };
 
     return fetchMock;
   }
