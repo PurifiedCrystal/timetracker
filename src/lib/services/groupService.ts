@@ -83,7 +83,7 @@ export class GroupService {
 
       // Count active invitations
       const activeInvitations = data.invitations.filter(
-        inv => inv.status === 'pending' && new Date(inv.expires_at!) > new Date()
+        (inv: any) => inv.status === 'pending' && new Date(inv.expires_at!) > new Date()
       );
 
       return {
