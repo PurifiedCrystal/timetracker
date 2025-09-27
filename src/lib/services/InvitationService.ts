@@ -102,7 +102,7 @@ export class InvitationService {
       }
 
       return {
-        group_name: invitation.groups.name,
+        group_name: (invitation as any).groups.name,
         group_id: invitation.group_id,
         invitation_valid: true,
         expires_at: invitation.expires_at,
