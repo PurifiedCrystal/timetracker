@@ -262,7 +262,7 @@ export class ShareableLinkService {
             platform: shareData.platform,
             shared_at: new Date().toISOString(),
             success: false,
-            error_message: error.message || 'Unknown error'
+            error_message: (error as Error).message || 'Unknown error'
           });
       } catch {
         // Ignore tracking errors for failed actions
