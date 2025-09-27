@@ -114,7 +114,6 @@ export const COUNTRY_LANGUAGE_MAP: Record<string, string> = {
   'CH': 'fr', // Switzerland (partially)
   'LU': 'fr',
   'MC': 'fr',
-  'CA': 'fr', // Canada (Quebec)
   'SN': 'fr',
   'ML': 'fr',
   'BF': 'fr',
