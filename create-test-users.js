@@ -1,12 +1,16 @@
 const { createClient } = require('@supabase/supabase-js');
 
-const supabaseUrl = 'https://kgwklydkmeihoulipqof.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtnd2tseWRrbWVpaG91bGlwcW9mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg3MjgwOTksImV4cCI6MjA3NDMwNDA5OX0.SVsGhRHEcRCArfKYwHbw2tWDfoF1JG8kaUm1cIgIOB4';
+// Load environment variables
+require('dotenv').config({ path: '.env.local' });
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://kgwklydkmeihoulipqof.supabase.co';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtnd2tseWRrbWVpaG91bGlwcW9mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg3MjgwOTksImV4cCI6MjA3NDMwNDA5OX0.SVsGhRHEcRCArfKYwHbw2tWDfoF1JG8kaUm1cIgIOB4';
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 async function createTestUsers() {
   console.log('Creating 10 test users...\n');
+  console.log(`Using Supabase URL: ${supabaseUrl}\n`);
 
   const results = [];
   const errors = [];

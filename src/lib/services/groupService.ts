@@ -106,7 +106,7 @@ export class GroupService {
         name: request.name.trim(),
         description: request.description?.trim() || null,
         manager_id: userId,
-        max_members: request.max_members || 20,
+        max_members: request.max_members || null, // No limit by default
       };
 
       const supabase = createRouteHandlerClient();
@@ -316,19 +316,36 @@ export class GroupService {
   }
 
   /**
-   * Helper: Check if user is group manager
+   * Helper: Check if user is group manager or admin
    */
   static async isGroupManager(groupId: string, userId: string): Promise<boolean> {
     try {
       const supabase = createRouteHandlerClient();
-      const { data, error } = await supabase
+
+      // Check if user is the original group manager
+      const { data: groupData, error: groupError } = await supabase
         .from('groups')
         .select('manager_id')
         .eq('id', groupId)
         .single();
 
-      if (error) throw error;
-      return data.manager_id === userId;
+      if (groupError) throw groupError;
+      if (groupData.manager_id === userId) return true;
+
+      // Also check if user has admin or manager role in membership
+      const { data: membershipData, error: membershipError } = await supabase
+        .from('group_memberships')
+        .select('role')
+        .eq('group_id', groupId)
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .is('removed_at', null)
+        .single();
+
+      if (membershipError && membershipError.code !== 'PGRST116') throw membershipError;
+      if (!membershipData) return false;
+
+      return membershipData.role === 'admin' || membershipData.role === 'manager';
     } catch (error) {
       console.error('Error checking group manager status:', error);
       return false;
@@ -353,7 +370,7 @@ export class GroupService {
       if (error && error.code !== 'PGRST116') throw error;
       if (!data) return false;
 
-      return data.can_export_data || data.role === 'admin';
+      return data.can_export_data || data.role === 'admin' || data.role === 'manager';
     } catch (error) {
       console.error('Error checking export permissions:', error);
       return false;

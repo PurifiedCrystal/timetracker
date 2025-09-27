@@ -8,7 +8,7 @@ import QRCodeInvite from '@/app/components/groups/QRCodeInvite';
 interface Group {
   id: string;
   name: string;
-  role: 'admin' | 'member';
+  role: 'admin' | 'manager' | 'member';
   members: number;
   created_at?: string;
   description?: string;
@@ -92,7 +92,7 @@ export default function GroupsPage() {
           body: JSON.stringify({
             name: newGroupName,
             description: newGroupDescription,
-            max_members: 20
+            max_members: null // No limit on members
           }),
         });
 
@@ -286,8 +286,14 @@ export default function GroupsPage() {
 
       {/* Group Management Modal Overlay */}
       {showGroupManagement && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          onClick={() => setShowGroupManagement(null)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-xl p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-gray-900">
                 Manage "{showGroupManagement.name}"
@@ -312,7 +318,7 @@ export default function GroupsPage() {
                   <div><span className="text-gray-600">Members:</span> {showGroupManagement.members}</div>
                   <div><span className="text-gray-600">Your Role:</span>
                     <span className={`ml-1 px-2 py-1 rounded-full text-xs ${
-                      showGroupManagement.role === 'admin'
+                      showGroupManagement.role === 'admin' || showGroupManagement.role === 'manager'
                         ? 'bg-yellow-100 text-yellow-800'
                         : 'bg-blue-100 text-blue-800'
                     }`}>
@@ -330,7 +336,7 @@ export default function GroupsPage() {
                     <UserPlus className="h-5 w-5 mr-2" />
                     View Members & Manage Access
                   </button>
-                  {showGroupManagement.role === 'admin' && (
+                  {(showGroupManagement.role === 'admin' || showGroupManagement.role === 'manager') && (
                     <button
                       onClick={() => setShowQRInModal(true)}
                       className="w-full flex items-center justify-center px-4 py-2 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg transition-colors"
@@ -343,7 +349,7 @@ export default function GroupsPage() {
               </div>
 
               {/* QR Code Section */}
-              {showQRInModal && showGroupManagement.role === 'admin' && (
+              {showQRInModal && (showGroupManagement.role === 'admin' || showGroupManagement.role === 'manager') && (
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="font-medium text-gray-900">Invitation QR Code</h4>
@@ -367,7 +373,7 @@ export default function GroupsPage() {
               )}
 
               {/* Danger Zone */}
-              {showGroupManagement.role === 'admin' && (
+              {(showGroupManagement.role === 'admin' || showGroupManagement.role === 'manager') && (
                 <div>
                   <h4 className="font-medium text-red-900 mb-3">Danger Zone</h4>
                   <div className="border border-red-200 rounded-lg p-4 bg-red-50">
@@ -408,15 +414,19 @@ export default function GroupsPage() {
           </div>
         ) : (
           groups.map((group) => (
-            <div key={group.id} className="bg-white rounded-2xl shadow-lg p-6">
+            <div
+              key={group.id}
+              onClick={() => setShowGroupManagement(group)}
+              className="bg-white rounded-2xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-shadow"
+            >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center mb-2">
                     <h3 className="text-lg font-semibold text-gray-900 mr-3">{group.name}</h3>
-                    {group.role === 'admin' && (
+                    {(group.role === 'admin' || group.role === 'manager') && (
                       <span className="inline-flex items-center px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded-full">
                         <Crown className="h-3 w-3 mr-1" />
-                        Admin
+                        {group.role === 'admin' ? 'Admin' : 'Manager'}
                       </span>
                     )}
                   </div>
@@ -427,15 +437,6 @@ export default function GroupsPage() {
                     <Users className="h-4 w-4 mr-1" />
                     {group.members} member{group.members !== 1 ? 's' : ''}
                   </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => setShowGroupManagement(group)}
-                    className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
-                    title="Group Settings"
-                  >
-                    <Settings className="h-5 w-5" />
-                  </button>
                 </div>
               </div>
             </div>

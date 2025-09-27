@@ -26,9 +26,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (body.max_members && (body.max_members < 1 || body.max_members > 100)) {
+    if (body.max_members && body.max_members < 1) {
       return NextResponse.json(
-        { error: 'Maximum members must be between 1 and 100' },
+        { error: 'Maximum members must be at least 1' },
         { status: 400 }
       );
     }

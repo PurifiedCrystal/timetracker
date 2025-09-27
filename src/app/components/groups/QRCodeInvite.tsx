@@ -28,7 +28,7 @@ export default function QRCodeInvite({
     setError(null);
 
     try {
-      const response = await fetch(`/api/v1/groups/${groupId}/invitations/qr`, {
+      const response = await fetch(`/api/group-qr?groupId=${encodeURIComponent(groupId)}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

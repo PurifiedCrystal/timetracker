@@ -46,7 +46,7 @@ export class LanguageFeatureValidator {
   private readonly defaultOptions: ValidationOptions = {
     includePerformance: true,
     includeAccessibility: true,
-    testLanguages: ['en', 'es', 'fr'],
+    testLanguages: ['en' as unknown as SupportedLanguage, 'es' as unknown as SupportedLanguage, 'fr' as unknown as SupportedLanguage],
     performanceThresholds: {
       detection: 200,
       loading: 1000,
@@ -144,7 +144,7 @@ export class LanguageFeatureValidator {
       checks.push({
         name: 'FR-003: Browser Language Fallback',
         category: 'functional',
-        status: DEFAULT_LANGUAGE_CONFIG.supportedLanguages.includes(supportedLang as SupportedLanguage) ? 'pass' : 'warning',
+        status: DEFAULT_LANGUAGE_CONFIG.supportedLanguages.includes(supportedLang as unknown as SupportedLanguage) ? 'pass' : 'warning',
         message: `Browser language: ${browserLang}, Mapped to: ${supportedLang}`,
         actualValue: supportedLang
       });

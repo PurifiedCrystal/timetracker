@@ -110,7 +110,9 @@
       "Bash(.specify/scripts/powershell/setup-plan.ps1 -Json)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "Bash(netlify deploy:*)"
+      "Bash(netlify deploy:*)",
+      "Bash(netlify:*)",
+      "Bash(del \"D:\\-=DropboxDoNotDelete=-\\Dropbox\\MyExecAssistant\\00-Github-SpecKit+\\timetracker\\src\\app\\api\\v1\\groups\\[id]\\invitations\\qr\\route.ts\")"
     ],
     "deny": [],
     "ask": []

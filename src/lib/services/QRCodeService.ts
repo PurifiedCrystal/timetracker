@@ -1,7 +1,7 @@
 // T013: Create QRCodeService in src/lib/services/QRCodeService.ts
 // Feature: 006-group-creation-qr
 
-import QRCode from 'qrcode';
+// Dynamic import to avoid Jest worker compilation issues
 import { createRouteHandlerClient } from '@/lib/supabase-server';
 import {
   QRGenerationRequest,
@@ -251,6 +251,9 @@ export class QRCodeService {
     errorCorrectionLevel: QRErrorCorrectionLevel
   ): Promise<string> {
     try {
+      // Dynamic import to avoid Jest worker compilation issues
+      const QRCode = await import('qrcode');
+
       const qrCodeOptions = {
         errorCorrectionLevel,
         type: 'image/png' as const,
@@ -263,7 +266,7 @@ export class QRCodeService {
         width: 256
       };
 
-      const qrCodeDataURL = await QRCode.toDataURL(url, qrCodeOptions);
+      const qrCodeDataURL = await QRCode.default.toDataURL(url, qrCodeOptions);
       return qrCodeDataURL;
     } catch (error) {
       console.error('QR code image generation failed:', error);

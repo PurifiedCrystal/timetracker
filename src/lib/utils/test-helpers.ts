@@ -387,14 +387,14 @@ export class TestScenarioBuilder {
       name: `Language Detection: ${name}`,
       setup: async () => {
         // Mock geolocation response
-        global.fetch = jest.fn().mockResolvedValue({
+        global.fetch = (() => Promise.resolve({
           ok: true,
           json: async () => mockGeolocationResponses[mockCountry]
-        });
+        })) as any;
       },
       expect: async () => {
         // Test would verify language detection result
-        expect(expectedLanguage).toBeDefined();
+        if (!expectedLanguage) throw new Error('Expected language not defined');
       }
     });
   }
@@ -409,42 +409,38 @@ export class TestScenarioBuilder {
       name: `Translation Loading: ${name}`,
       setup: async () => {
         if (shouldSucceed) {
-          global.fetch = jest.fn().mockResolvedValue({
+          global.fetch = (() => Promise.resolve({
             ok: true,
             json: async () => ({
               language,
               namespaces: {
-                [namespace]: mockTranslations[language][namespace]
+                [namespace]: mockTranslations[language as unknown as string][namespace]
               }
             })
-          });
+          })) as any;
         } else {
-          global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
+          global.fetch = (() => Promise.reject(new Error('Network error'))) as any;
         }
       },
       expect: async () => {
-        expect(shouldSucceed).toBeDefined();
+        if (shouldSucceed === undefined) throw new Error('shouldSucceed not defined');
       }
     });
   }
 
   async runScenarios(): Promise<void> {
+    // Test scenarios would run here in a test environment
+    // This is a helper class for testing but not used in production
     for (const scenario of this.scenarios) {
-      describe(scenario.name, () => {
-        beforeEach(async () => {
-          await scenario.setup();
-        });
-
-        afterEach(async () => {
-          if (scenario.teardown) {
-            await scenario.teardown();
-          }
-        });
-
-        it('should work correctly', async () => {
-          await scenario.expect();
-        });
-      });
+      // In a test environment, this would create describe/it blocks
+      await scenario.setup();
+      try {
+        await scenario.expect();
+      } finally {
+        if (scenario.teardown) {
+          await scenario.teardown();
+        }
+      }
     }
   }
 }
