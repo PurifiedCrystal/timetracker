@@ -359,7 +359,7 @@ export class ProgressiveLoadingService {
       'it': ['es' as unknown as SupportedLanguage, 'fr' as unknown as SupportedLanguage, 'en' as unknown as SupportedLanguage]
     };
 
-    return languageGroups[currentLanguage] || ['en' as unknown as SupportedLanguage];
+    return languageGroups[currentLanguage as string] || ['en' as unknown as SupportedLanguage];
   }
 }
 
