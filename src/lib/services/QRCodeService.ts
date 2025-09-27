@@ -282,7 +282,6 @@ export class QRCodeService {
         invitation_type: invitationData.invitation_type || 'qr_code',
         status: invitationData.status || 'pending',
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
         expires_at: invitationData.expires_at || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         qr_code_data: invitationData.qr_code_data || '',
         share_count: invitationData.share_count || 0,
