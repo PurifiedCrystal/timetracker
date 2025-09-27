@@ -351,7 +351,7 @@ export class InvitationService {
         } as Record<InvitationType, number>
       };
 
-      invitations.forEach(inv => {
+      invitations.forEach((inv: any) => {
         stats[inv.status as keyof typeof stats]++;
         stats.by_type[inv.invitation_type]++;
       });
