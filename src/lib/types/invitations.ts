@@ -117,7 +117,10 @@ export interface ShareActionRequest {
 }
 
 export interface ShareActionResponse {
-  share_id: string;
+  share_id?: string;
+  share_action_id?: string;
+  invitation_id?: string;
+  recorded_at?: string;
   success: boolean;
 }
 
