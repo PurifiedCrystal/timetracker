@@ -2,12 +2,12 @@
 
 import React, { useState } from 'react';
 import { QrCode, Share2, Copy, Clock, AlertCircle, CheckCircle, Users } from 'lucide-react';
-import type { QRCodeResponse } from '@/types/invitation';
+import type { QRGenerationResponse } from '@/lib/types/invitations';
 
 interface QRCodeInviteProps {
   groupId: string;
   groupName: string;
-  onInvitationGenerated?: (invitation: QRCodeResponse) => void;
+  onInvitationGenerated?: (invitation: QRGenerationResponse) => void;
   className?: string;
 }
 
@@ -18,7 +18,7 @@ export default function QRCodeInvite({
   className = ''
 }: QRCodeInviteProps) {
   const [generating, setGenerating] = useState(false);
-  const [invitation, setInvitation] = useState<QRCodeResponse | null>(null);
+  const [invitation, setInvitation] = useState<QRGenerationResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [expiryHours, setExpiryHours] = useState(24);
@@ -28,22 +28,20 @@ export default function QRCodeInvite({
     setError(null);
 
     try {
-      const response = await fetch('/api/v1/invitations/qr', {
+      const response = await fetch(`/api/v1/groups/${groupId}/invitations/qr`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          group_id: groupId,
           expires_in_hours: expiryHours
         }),
       });
 
       if (response.ok) {
         const data = await response.json();
-        const newInvitation = data.invitation;
-        setInvitation(newInvitation);
-        onInvitationGenerated?.(newInvitation);
+        setInvitation(data);
+        onInvitationGenerated?.(data);
       } else {
         const errorData = await response.json();
         setError(errorData.error || 'Failed to generate invitation');
@@ -58,7 +56,7 @@ export default function QRCodeInvite({
   const copyInviteLink = async () => {
     if (!invitation) return;
 
-    const inviteLink = `${window.location.origin}/join/${invitation.invitation_code}`;
+    const inviteLink = invitation.invitation_url;
 
     try {
       await navigator.clipboard.writeText(inviteLink);
@@ -72,7 +70,7 @@ export default function QRCodeInvite({
   const shareInvitation = async () => {
     if (!invitation) return;
 
-    const inviteLink = `${window.location.origin}/join/${invitation.invitation_code}`;
+    const inviteLink = invitation.invitation_url;
     const shareData = {
       title: `Join ${groupName}`,
       text: `You've been invited to join the ${groupName} group for time tracking.`,
@@ -163,16 +161,23 @@ export default function QRCodeInvite({
             {/* QR Code Display */}
             <div className="text-center">
               <div className="inline-block p-6 bg-white border-2 border-gray-200 rounded-2xl">
-                {/* This would normally display the actual QR code */}
-                <div className="w-48 h-48 bg-gray-100 rounded-xl flex items-center justify-center">
-                  <div className="text-center">
-                    <QrCode className="h-16 w-16 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-500">QR Code</p>
-                    <p className="text-xs text-gray-400 font-mono">
-                      {invitation.invitation_code}
-                    </p>
+                {invitation.qr_code_data ? (
+                  <img
+                    src={invitation.qr_code_data}
+                    alt={`QR Code for ${groupName} invitation`}
+                    className="w-48 h-48 rounded-xl"
+                  />
+                ) : (
+                  <div className="w-48 h-48 bg-gray-100 rounded-xl flex items-center justify-center">
+                    <div className="text-center">
+                      <QrCode className="h-16 w-16 text-gray-400 mx-auto mb-2" />
+                      <p className="text-sm text-gray-500">QR Code</p>
+                      <p className="text-xs text-gray-400 font-mono">
+                        {invitation.invitation_code}
+                      </p>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
 
@@ -181,7 +186,7 @@ export default function QRCodeInvite({
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Group:</span>
-                  <span className="font-medium text-gray-900">{invitation.group_name}</span>
+                  <span className="font-medium text-gray-900">{groupName}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Code:</span>
