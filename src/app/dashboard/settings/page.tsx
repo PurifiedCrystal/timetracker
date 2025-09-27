@@ -44,7 +44,7 @@ export default function SettingsPage() {
   const [fullName, setFullName] = useState('');
   const [locationState, setLocationState] = useState('');
   const [timezone, setTimezone] = useState('');
-  const [defaultExportFormat, setDefaultExportFormat] = useState('csv');
+  const [defaultExportFormat, setDefaultExportFormat] = useState('excel');
   const [includeBreaks, setIncludeBreaks] = useState(true);
   const [includeOvertime, setIncludeOvertime] = useState(true);
 
@@ -66,7 +66,7 @@ export default function SettingsPage() {
         setTimezone(userProfile.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone);
 
         if (userProfile.export_preferences) {
-          setDefaultExportFormat(userProfile.export_preferences.default_format || 'csv');
+          setDefaultExportFormat(userProfile.export_preferences.default_format || 'excel');
           setIncludeBreaks(userProfile.export_preferences.include_breaks ?? true);
           setIncludeOvertime(userProfile.export_preferences.include_overtime ?? true);
         }
@@ -155,7 +155,7 @@ export default function SettingsPage() {
 
       {/* Mobile-first header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Account Settings</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Profile</h1>
         <p className="text-gray-600">
           Manage your profile and preferences
         </p>

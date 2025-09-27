@@ -1,0 +1,362 @@
+openapi: 3.0.3
+info:
+  title: Language Detection and Geolocation API
+  description: API endpoints for automatic language detection based on user location and browser preferences
+  version: 1.0.0
+  contact:
+    name: Time Tracker API
+
+servers:
+  - url: /api/v1
+    description: API v1 endpoints
+
+paths:
+  /language/detect:
+    post:
+      summary: Detect user's preferred language
+      description: Analyze user context (IP, browser, preferences) to determine optimal language
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LanguageDetectionRequest'
+      responses:
+        '200':
+          description: Language detection completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LanguageDetectionResponse'
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Language Detection
+
+  /language/preference:
+    post:
+      summary: Save user language preference
+      description: Store user's explicit language choice for future sessions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LanguagePreferenceRequest'
+      responses:
+        '200':
+          description: Language preference saved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LanguagePreferenceResponse'
+        '400':
+          description: Invalid language code or request format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Language Preference
+
+    get:
+      summary: Get user language preference
+      description: Retrieve saved user language preference if available
+      responses:
+        '200':
+          description: Language preference retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LanguagePreferenceResponse'
+        '404':
+          description: No saved preference found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Language Preference
+
+  /language/supported:
+    get:
+      summary: Get supported languages
+      description: Retrieve list of all supported languages with metadata
+      responses:
+        '200':
+          description: Supported languages retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportedLanguagesResponse'
+      tags:
+        - Language Configuration
+
+components:
+  schemas:
+    LanguageDetectionRequest:
+      type: object
+      properties:
+        browserLanguages:
+          type: array
+          items:
+            type: string
+          description: Browser language preferences (navigator.languages)
+          example: ["en-US", "en", "es"]
+        userAgent:
+          type: string
+          description: Browser user agent string
+        timezone:
+          type: string
+          description: User's timezone (Intl.DateTimeFormat().resolvedOptions().timeZone)
+          example: "America/New_York"
+        previousLanguage:
+          type: string
+          description: Previously selected language (if any)
+          example: "es"
+
+    LanguageDetectionResponse:
+      type: object
+      properties:
+        detectedLanguage:
+          type: string
+          description: Recommended language code
+          example: "es"
+        detectionMethod:
+          type: string
+          enum: [geolocation, browser, storage, default]
+          description: Method used for detection
+        confidence:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Confidence score for the detection
+          example: 0.85
+        geolocationData:
+          $ref: '#/components/schemas/GeolocationData'
+        browserLanguages:
+          type: array
+          items:
+            type: string
+          description: Detected browser languages
+        fallbackReason:
+          type: string
+          description: Reason for fallback (if applicable)
+        supportedLanguages:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupportedLanguage'
+      required:
+        - detectedLanguage
+        - detectionMethod
+        - confidence
+
+    GeolocationData:
+      type: object
+      properties:
+        country:
+          type: string
+          description: ISO country code
+          example: "ES"
+        region:
+          type: string
+          description: State or region
+          example: "Madrid"
+        city:
+          type: string
+          description: City name
+          example: "Madrid"
+        accuracy:
+          type: string
+          enum: [country, region, city]
+          description: Accuracy level of geolocation
+        ipAddress:
+          type: string
+          description: Client IP address (anonymized)
+          example: "192.168.1.xxx"
+      required:
+        - country
+        - accuracy
+
+    LanguagePreferenceRequest:
+      type: object
+      properties:
+        language:
+          type: string
+          description: Selected language code
+          example: "es"
+        autoDetection:
+          type: boolean
+          description: Whether to use automatic detection
+          default: true
+        customSettings:
+          type: object
+          properties:
+            dateFormat:
+              type: string
+              description: Preferred date format
+              example: "dd/MM/yyyy"
+            timeFormat:
+              type: string
+              enum: ["12h", "24h"]
+              description: Time display preference
+              example: "24h"
+            numberFormat:
+              type: string
+              enum: ["auto", "us", "eu"]
+              description: Number format preference
+              example: "eu"
+      required:
+        - language
+
+    LanguagePreferenceResponse:
+      type: object
+      properties:
+        language:
+          type: string
+          description: Current language preference
+          example: "es"
+        autoDetection:
+          type: boolean
+          description: Auto-detection setting
+        customSettings:
+          type: object
+          description: User's custom formatting preferences
+        lastUpdated:
+          type: string
+          format: date-time
+          description: When preference was last updated
+        detectionHistory:
+          type: array
+          items:
+            $ref: '#/components/schemas/DetectionHistoryItem'
+          description: Recent detection results (last 5)
+      required:
+        - language
+        - autoDetection
+        - lastUpdated
+
+    DetectionHistoryItem:
+      type: object
+      properties:
+        detectedLanguage:
+          type: string
+        detectionMethod:
+          type: string
+        confidence:
+          type: number
+          format: float
+        timestamp:
+          type: string
+          format: date-time
+
+    SupportedLanguage:
+      type: object
+      properties:
+        code:
+          type: string
+          description: ISO 639-1 language code
+          example: "es"
+        name:
+          type: string
+          description: Native language name
+          example: "Español"
+        englishName:
+          type: string
+          description: English name of the language
+          example: "Spanish"
+        flag:
+          type: string
+          description: Flag emoji or icon identifier
+          example: "🇪🇸"
+        direction:
+          type: string
+          enum: [ltr, rtl]
+          description: Text direction
+          example: "ltr"
+        dateFormat:
+          type: string
+          description: Default date format for locale
+          example: "dd/MM/yyyy"
+        numberFormat:
+          type: object
+          properties:
+            decimal:
+              type: string
+              description: Decimal separator
+              example: ","
+            thousands:
+              type: string
+              description: Thousands separator
+              example: "."
+      required:
+        - code
+        - name
+        - englishName
+        - direction
+
+    SupportedLanguagesResponse:
+      type: object
+      properties:
+        languages:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupportedLanguage'
+        defaultLanguage:
+          type: string
+          description: System default language
+          example: "en"
+        countryLanguageMap:
+          type: object
+          additionalProperties:
+            type: string
+          description: Mapping of country codes to default languages
+          example:
+            ES: "es"
+            FR: "fr"
+            DE: "de"
+      required:
+        - languages
+        - defaultLanguage
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error type
+          example: "invalid_language"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Language code 'xyz' is not supported"
+        details:
+          type: object
+          description: Additional error context
+        supportedLanguages:
+          type: array
+          items:
+            type: string
+          description: Available language codes (for invalid language errors)
+      required:
+        - error
+        - message
+
+tags:
+  - name: Language Detection
+    description: Automatic language detection based on user context
+  - name: Language Preference
+    description: User language preference management
+  - name: Language Configuration
+    description: System language configuration and metadata

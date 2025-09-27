@@ -1,0 +1,387 @@
+openapi: 3.0.3
+info:
+  title: Time Tracking API with Location Verification
+  description: Extended time tracking endpoints supporting location-based check-in controls
+  version: 1.0.0
+  contact:
+    name: Time Tracker API
+
+servers:
+  - url: /api/v1
+    description: API v1 endpoints
+
+paths:
+  /time/checkin:
+    post:
+      summary: Clock in with optional location verification
+      description: Start a new time tracking session with location verification if group policy requires it
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckInRequest'
+      responses:
+        '201':
+          description: Check-in successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckInResponse'
+        '400':
+          description: Invalid request data or location verification failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Location verification required but not provided or outside boundary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationVerificationError'
+        '409':
+          description: Already checked in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Time Tracking
+      security:
+        - bearerAuth: []
+
+  /time/checkout:
+    post:
+      summary: Clock out of current session
+      description: End the current time tracking session
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckOutRequest'
+      responses:
+        '200':
+          description: Check-out successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckOutResponse'
+        '400':
+          description: Not currently checked in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Time Tracking
+      security:
+        - bearerAuth: []
+
+  /time/active:
+    get:
+      summary: Get active time session
+      description: Retrieve current active time tracking session if any
+      responses:
+        '200':
+          description: Active session retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActiveSessionResponse'
+        '204':
+          description: No active session
+      tags:
+        - Time Tracking
+      security:
+        - bearerAuth: []
+
+  /time/entries:
+    get:
+      summary: Get time entries with location verification data
+      description: Retrieve time entries including location verification results
+      parameters:
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Filter entries from this date
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Filter entries until this date
+        - name: group_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter entries for specific group
+        - name: include_location_data
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Include location verification details
+      responses:
+        '200':
+          description: Time entries retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeEntriesResponse'
+      tags:
+        - Time Tracking
+      security:
+        - bearerAuth: []
+
+components:
+  schemas:
+    CheckInRequest:
+      type: object
+      properties:
+        group_id:
+          type: string
+          format: uuid
+          description: Group to check in for (optional)
+        location:
+          $ref: '#/components/schemas/LocationData'
+        notes:
+          type: string
+          maxLength: 500
+          description: Optional check-in notes
+      required: []
+
+    CheckInResponse:
+      type: object
+      properties:
+        entry:
+          $ref: '#/components/schemas/TimeEntry'
+        location_verification:
+          $ref: '#/components/schemas/LocationVerification'
+        warnings:
+          type: array
+          items:
+            type: string
+          description: Non-blocking warnings (e.g., location accuracy)
+      required:
+        - entry
+
+    CheckOutRequest:
+      type: object
+      properties:
+        notes:
+          type: string
+          maxLength: 500
+          description: Optional check-out notes
+
+    CheckOutResponse:
+      type: object
+      properties:
+        entry:
+          $ref: '#/components/schemas/TimeEntry'
+        duration_hours:
+          type: number
+          format: double
+          description: Total session duration in hours
+      required:
+        - entry
+        - duration_hours
+
+    ActiveSessionResponse:
+      type: object
+      properties:
+        entry:
+          $ref: '#/components/schemas/TimeEntry'
+        current_duration_hours:
+          type: number
+          format: double
+          description: Current session duration in hours
+        location_verification:
+          $ref: '#/components/schemas/LocationVerification'
+      required:
+        - entry
+        - current_duration_hours
+
+    TimeEntriesResponse:
+      type: object
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimeEntry'
+        total_count:
+          type: integer
+          description: Total number of entries matching filter
+        page:
+          type: integer
+          description: Current page number
+        per_page:
+          type: integer
+          description: Entries per page
+      required:
+        - entries
+        - total_count
+
+    TimeEntry:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Time entry UUID
+        user_id:
+          type: string
+          format: uuid
+          description: User UUID
+        group_id:
+          type: string
+          format: uuid
+          description: Group UUID (if applicable)
+        clock_in:
+          type: string
+          format: date-time
+          description: Check-in timestamp
+        clock_out:
+          type: string
+          format: date-time
+          description: Check-out timestamp (null if active)
+        duration_minutes:
+          type: integer
+          description: Total duration in minutes (null if active)
+        notes:
+          type: string
+          description: Session notes
+        metadata:
+          type: object
+          description: Additional session metadata
+        location_verification:
+          $ref: '#/components/schemas/LocationVerification'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - user_id
+        - clock_in
+        - created_at
+        - updated_at
+
+    LocationData:
+      type: object
+      properties:
+        latitude:
+          type: number
+          format: double
+          minimum: -90.0
+          maximum: 90.0
+          description: GPS latitude
+        longitude:
+          type: number
+          format: double
+          minimum: -180.0
+          maximum: 180.0
+          description: GPS longitude
+        accuracy:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 10000
+          description: GPS accuracy in meters
+        timestamp:
+          type: string
+          format: date-time
+          description: Location reading timestamp
+      required:
+        - latitude
+        - longitude
+        - accuracy
+
+    LocationVerification:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [verified, warning, unavailable, timeout, rejected]
+          description: Verification result status
+        accuracy_meters:
+          type: number
+          format: double
+          description: GPS accuracy at verification time
+        verification_timestamp:
+          type: string
+          format: date-time
+          description: When verification was performed
+        enforcement_mode:
+          type: string
+          enum: [strict, permissive]
+          description: Policy mode at verification time
+        error_reason:
+          type: string
+          description: Error details for failed verifications
+        distance_from_center:
+          type: number
+          format: double
+          description: Distance from policy center (for audit)
+      required:
+        - status
+        - verification_timestamp
+        - enforcement_mode
+
+    LocationVerificationError:
+      type: object
+      properties:
+        error:
+          type: string
+          enum: [location_required, outside_boundary, accuracy_insufficient]
+          description: Specific location verification error
+        message:
+          type: string
+          description: Human-readable error message
+        location_policy:
+          type: object
+          properties:
+            radius_meters:
+              type: integer
+            enforcement_mode:
+              type: string
+            required_accuracy:
+              type: integer
+          description: Current policy requirements
+        verification_result:
+          $ref: '#/components/schemas/LocationVerification'
+      required:
+        - error
+        - message
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error type
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          description: Additional error context
+      required:
+        - error
+        - message
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+tags:
+  - name: Time Tracking
+    description: Time tracking operations with location verification

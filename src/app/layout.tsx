@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { LanguageProvider } from '@/lib/contexts/LanguageContext';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -58,7 +59,9 @@ export default function RootLayout({
       <body className={`${inter.className} h-full`}>
         <div id="root" className="min-h-full">
           <ErrorBoundary>
-            {children}
+            <LanguageProvider>
+              {children}
+            </LanguageProvider>
           </ErrorBoundary>
         </div>
       </body>

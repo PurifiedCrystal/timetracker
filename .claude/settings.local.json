@@ -98,7 +98,19 @@
       "Bash(taskkill:*)",
       "Bash(pkill:*)",
       "Bash(..specifyscriptspowershellcheck-prerequisites.ps1 -Json -RequireTasks -IncludeTasks)",
-      "Bash(.specify/scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks)"
+      "Bash(.specify/scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks)",
+      "Bash(.specify/scripts/powershell/create-new-feature.ps1:*)",
+      "Bash(rd:*)",
+      "SlashCommand(/plan)",
+      "Bash(.specify/scripts/powershell/update-agent-context.ps1 -AgentType claude)",
+      "mcp__supabase__generate_typescript_types",
+      "Bash(move:*)",
+      "Bash(mkdir:*)",
+      "Bash(.specify/scripts/powershell/check-prerequisites.ps1 -Json -PathsOnly)",
+      "Bash(.specify/scripts/powershell/setup-plan.ps1 -Json)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(netlify deploy:*)"
     ],
     "deny": [],
     "ask": []

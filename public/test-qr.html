@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        button { background: #2563eb; color: white; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #1d4ed8; }
+        button:disabled { background: #9ca3af; cursor: not-allowed; }
+        .result { margin-top: 20px; padding: 15px; background: #f8fafc; border-radius: 6px; }
+        .qr-code { text-align: center; margin: 20px 0; }
+        .qr-code img { max-width: 256px; border: 2px solid #e5e7eb; border-radius: 8px; }
+        .error { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+        .success { background: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0; }
+        pre { background: #f1f5f9; padding: 10px; border-radius: 4px; overflow-x: auto; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>QR Code Generation Test</h1>
+        <p>Test the QR code generation API endpoint directly.</p>
+
+        <div>
+            <label for="groupId">Group ID:</label>
+            <input type="text" id="groupId" value="test-group-123" style="margin: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 200px;">
+        </div>
+
+        <div>
+            <label for="expiryHours">Expiry Hours:</label>
+            <input type="number" id="expiryHours" value="24" min="1" max="168" style="margin: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 100px;">
+        </div>
+
+        <button onclick="generateQR()" id="generateBtn">Generate QR Code</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function generateQR() {
+            const btn = document.getElementById('generateBtn');
+            const result = document.getElementById('result');
+            const groupId = document.getElementById('groupId').value;
+            const expiryHours = parseInt(document.getElementById('expiryHours').value);
+
+            btn.disabled = true;
+            btn.textContent = 'Generating...';
+            result.innerHTML = '';
+
+            try {
+                const response = await fetch(`/api/v1/groups/${groupId}/invitations/qr`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        expires_in_hours: expiryHours
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    result.innerHTML = `
+                        <div class="result success">
+                            <h3>✅ QR Code Generated Successfully!</h3>
+                            <div class="qr-code">
+                                <img src="${data.qr_code_data}" alt="QR Code" />
+                                <p><strong>Invitation Code:</strong> ${data.invitation_code}</p>
+                                <p><strong>Expires:</strong> ${new Date(data.expires_at).toLocaleString()}</p>
+                                <p><strong>Invitation URL:</strong> <a href="${data.invitation_url}" target="_blank">${data.invitation_url}</a></p>
+                            </div>
+                            <details>
+                                <summary>Raw Response</summary>
+                                <pre>${JSON.stringify(data, null, 2)}</pre>
+                            </details>
+                        </div>
+                    `;
+                } else {
+                    result.innerHTML = `
+                        <div class="result error">
+                            <h3>❌ Error</h3>
+                            <p><strong>Status:</strong> ${response.status}</p>
+                            <p><strong>Error:</strong> ${data.error || 'Unknown error'}</p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                result.innerHTML = `
+                    <div class="result error">
+                        <h3>❌ Network Error</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Generate QR Code';
+            }
+        }
+
+        // Generate QR code on page load for immediate testing
+        window.addEventListener('load', () => {
+            setTimeout(generateQR, 500);
+        });
+    </script>
+</body>
+</html>

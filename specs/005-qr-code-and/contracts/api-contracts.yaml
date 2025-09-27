@@ -1,0 +1,655 @@
+openapi: 3.0.3
+info:
+  title: Enhanced Group Management, Export System, and History API
+  description: API contracts for feature 005-qr-code-and
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Development server
+
+paths:
+  # Group Management Endpoints
+  /groups/{groupId}/members:
+    get:
+      summary: List group members
+      description: Get all members of a specific group (managers only)
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of group members
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  members:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/GroupMember'
+        '403':
+          description: Insufficient permissions
+        '404':
+          description: Group not found
+
+    post:
+      summary: Add member to group
+      description: Add a new member to the group (managers only)
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Email of user to add
+                role:
+                  type: string
+                  enum: [manager, member]
+                  default: member
+                hourly_rate:
+                  type: number
+                  minimum: 0
+                  description: Optional hourly rate
+              required:
+                - email
+      responses:
+        '201':
+          description: Member added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupMember'
+        '400':
+          description: Invalid request data
+        '403':
+          description: Insufficient permissions
+        '409':
+          description: User already in group
+
+  /groups/{groupId}/members/{memberId}:
+    patch:
+      summary: Update group member
+      description: Update member role or hourly rate (managers only)
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role:
+                  type: string
+                  enum: [manager, member]
+                hourly_rate:
+                  type: number
+                  minimum: 0
+                notes:
+                  type: string
+                  maxLength: 500
+      responses:
+        '200':
+          description: Member updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupMember'
+        '403':
+          description: Insufficient permissions
+        '404':
+          description: Member not found
+
+    delete:
+      summary: Remove member from group
+      description: Remove a member from the group (managers only)
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Member removed successfully
+        '403':
+          description: Insufficient permissions
+        '404':
+          description: Member not found
+
+  /groups/{groupId}:
+    delete:
+      summary: Delete group
+      description: Permanently delete a group and all related data (managers only)
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Group deleted successfully
+        '403':
+          description: Insufficient permissions
+        '409':
+          description: Cannot delete group with active members or schedules
+
+  # QR Code and Invitations
+  /groups/{groupId}/invitations/qr:
+    post:
+      summary: Generate QR code invitation
+      description: Generate a new QR code for group invitations (managers only)
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                expires_in_hours:
+                  type: integer
+                  minimum: 1
+                  maximum: 168
+                  default: 24
+                  description: Hours until invitation expires
+      responses:
+        '201':
+          description: QR code generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invitation'
+        '403':
+          description: Insufficient permissions
+        '404':
+          description: Group not found
+
+  /invitations/{code}/join:
+    post:
+      summary: Join group via invitation
+      description: Accept an invitation and join the group
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully joined group
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  group:
+                    $ref: '#/components/schemas/Group'
+                  message:
+                    type: string
+        '400':
+          description: Invalid or expired invitation
+        '409':
+          description: User already in group
+
+  # Export Schedules
+  /export-schedules:
+    get:
+      summary: List export schedules
+      description: Get all export schedules for groups managed by current user
+      responses:
+        '200':
+          description: List of export schedules
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  schedules:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ExportSchedule'
+
+    post:
+      summary: Create export schedule
+      description: Create a new automated export schedule (managers only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                group_id:
+                  type: string
+                  format: uuid
+                recipient_name:
+                  type: string
+                  maxLength: 100
+                recipient_email:
+                  type: string
+                  format: email
+                export_time:
+                  type: string
+                  pattern: '^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$'
+                  example: "09:00"
+                export_timezone:
+                  type: string
+                  example: "America/Los_Angeles"
+                is_hourly_basis:
+                  type: boolean
+                  default: false
+                target_scope:
+                  type: string
+                  enum: [self, group]
+                  default: group
+              required:
+                - group_id
+                - recipient_name
+                - recipient_email
+                - export_time
+      responses:
+        '201':
+          description: Export schedule created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportSchedule'
+        '400':
+          description: Invalid request data
+        '403':
+          description: Insufficient permissions
+
+  /export-schedules/{scheduleId}:
+    patch:
+      summary: Update export schedule
+      description: Update an existing export schedule (managers only)
+      parameters:
+        - name: scheduleId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                recipient_name:
+                  type: string
+                  maxLength: 100
+                recipient_email:
+                  type: string
+                  format: email
+                export_time:
+                  type: string
+                  pattern: '^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$'
+                is_hourly_basis:
+                  type: boolean
+                target_scope:
+                  type: string
+                  enum: [self, group]
+                is_active:
+                  type: boolean
+      responses:
+        '200':
+          description: Export schedule updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportSchedule'
+        '403':
+          description: Insufficient permissions
+        '404':
+          description: Schedule not found
+
+    delete:
+      summary: Delete export schedule
+      description: Remove an export schedule (managers only)
+      parameters:
+        - name: scheduleId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Export schedule deleted successfully
+        '403':
+          description: Insufficient permissions
+        '404':
+          description: Schedule not found
+
+  # Enhanced Exports
+  /exports/generate:
+    post:
+      summary: Generate export
+      description: Generate an export with enhanced options
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                group_id:
+                  type: string
+                  format: uuid
+                  description: Group to export (null for personal export)
+                date_range:
+                  type: string
+                  enum: [today, week, month, quarter, year, all_time]
+                  default: month
+                format:
+                  type: string
+                  enum: [csv, pdf, excel]
+                  default: csv
+                custom_date_range:
+                  type: object
+                  properties:
+                    start_date:
+                      type: string
+                      format: date
+                    end_date:
+                      type: string
+                      format: date
+                  description: Custom date range (overrides date_range if provided)
+                delivery_method:
+                  type: string
+                  enum: [download, email]
+                  default: download
+                recipient_email:
+                  type: string
+                  format: email
+                  description: Required if delivery_method is email
+              required:
+                - format
+      responses:
+        '201':
+          description: Export generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  export_id:
+                    type: string
+                    format: uuid
+                  download_url:
+                    type: string
+                    description: Download URL (if delivery_method is download)
+                  status:
+                    type: string
+                    enum: [processing, completed]
+                  message:
+                    type: string
+        '400':
+          description: Invalid request data
+        '403':
+          description: Insufficient permissions
+
+  # History with Visualization Data
+  /history/visualization:
+    get:
+      summary: Get history data for charts
+      description: Get time entry data formatted for visualization
+      parameters:
+        - name: group_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Group to filter by (optional, managers only)
+        - name: date_range
+          in: query
+          schema:
+            type: string
+            enum: [week, month, quarter, year]
+            default: month
+        - name: user_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Specific user (managers only, defaults to current user)
+      responses:
+        '200':
+          description: Visualization data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  daily_data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        date:
+                          type: string
+                          format: date
+                        hours:
+                          type: number
+                        entries_count:
+                          type: integer
+                  weekly_summary:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        week_start:
+                          type: string
+                          format: date
+                        total_hours:
+                          type: number
+                        average_daily_hours:
+                          type: number
+                  monthly_summary:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        month:
+                          type: string
+                          example: "2025-09"
+                        total_hours:
+                          type: number
+                        working_days:
+                          type: integer
+                  chart_data:
+                    type: object
+                    properties:
+                      line_chart:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            x:
+                              type: string
+                            y:
+                              type: number
+                      bar_chart:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            label:
+                              type: string
+                            value:
+                              type: number
+
+components:
+  schemas:
+    Group:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        manager_id:
+          type: string
+          format: uuid
+        max_members:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+
+    GroupMember:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        group_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [manager, member]
+        hourly_rate:
+          type: number
+          minimum: 0
+        can_view_reports:
+          type: boolean
+        can_export_data:
+          type: boolean
+        is_active:
+          type: boolean
+        joined_at:
+          type: string
+          format: date-time
+        user_profile:
+          type: object
+          properties:
+            full_name:
+              type: string
+            email:
+              type: string
+              format: email
+
+    Invitation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        group_id:
+          type: string
+          format: uuid
+        invitation_code:
+          type: string
+        qr_code_data:
+          type: string
+        status:
+          type: string
+          enum: [pending, accepted, declined, expired]
+        expires_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+
+    ExportSchedule:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        group_id:
+          type: string
+          format: uuid
+        recipient_name:
+          type: string
+        recipient_email:
+          type: string
+          format: email
+        export_time:
+          type: string
+          example: "09:00"
+        export_timezone:
+          type: string
+        is_hourly_basis:
+          type: boolean
+        target_scope:
+          type: string
+          enum: [self, group]
+        is_active:
+          type: boolean
+        last_executed_at:
+          type: string
+          format: date-time
+        next_execution_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        group:
+          $ref: '#/components/schemas/Group'
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - BearerAuth: []

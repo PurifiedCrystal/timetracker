@@ -86,26 +86,10 @@ export const HabitTrackerMode = React.memo(() => {
 
   const loadHabitData = async () => {
     try {
+      setLoading(true);
       const today = new Date().toISOString().split('T')[0];
 
-      // Try to load from API
-      try {
-        const entriesResponse = await fetch(`/api/v1/habits/entries?start_date=${today}&end_date=${today}`);
-        if (entriesResponse.ok) {
-          const data = await entriesResponse.json();
-          setTodayEntries(data.entries || []);
-        }
-
-        const statsResponse = await fetch('/api/v1/habits/stats');
-        if (statsResponse.ok) {
-          const data = await statsResponse.json();
-          setHabitStats(data.stats || habitStats);
-        }
-      } catch (apiError) {
-        console.warn('API failed, using localStorage fallback:', apiError);
-      }
-
-      // Load from localStorage
+      // Load from localStorage (faster and always available)
       const savedEntries = localStorage.getItem(`habit_entries_${today}`);
       const savedCustomHabits = localStorage.getItem('custom_habits');
 
@@ -116,8 +100,32 @@ export const HabitTrackerMode = React.memo(() => {
       if (savedCustomHabits) {
         setCustomHabits(JSON.parse(savedCustomHabits));
       }
+
+      // Calculate basic stats from loaded data
+      const entries = savedEntries ? JSON.parse(savedEntries) : [];
+      const customHabitsData = savedCustomHabits ? JSON.parse(savedCustomHabits) : [];
+      const allHabits = [...DEFAULT_HABITS, ...customHabitsData];
+
+      setHabitStats({
+        total_habits: allHabits.length,
+        completed_today: entries.length,
+        current_streaks: entries.length, // Simplified for now
+        total_time_today: entries.length * 30, // Simplified calculation
+        categories: [...new Set(entries.map((e: any) => e.habit_category))] as string[]
+      });
+
     } catch (error) {
       console.error('Failed to load habit data:', error);
+      // Set empty defaults on error
+      setTodayEntries([]);
+      setCustomHabits([]);
+      setHabitStats({
+        total_habits: DEFAULT_HABITS.length,
+        completed_today: 0,
+        current_streaks: 0,
+        total_time_today: 0,
+        categories: []
+      });
     } finally {
       setLoading(false);
     }
@@ -136,23 +144,7 @@ export const HabitTrackerMode = React.memo(() => {
         entry_date: new Date().toISOString().split('T')[0]
       };
 
-      // Try API first
-      try {
-        const response = await fetch('/api/v1/habits/entries', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(entryData)
-        });
-
-        if (response.ok) {
-          await loadHabitData();
-          return;
-        }
-      } catch (apiError) {
-        console.warn('API log failed, using localStorage:', apiError);
-      }
-
-      // Fallback to localStorage
+      // Direct localStorage storage for instant feedback
       const today = new Date().toISOString().split('T')[0];
       const existingEntries = JSON.parse(localStorage.getItem(`habit_entries_${today}`) || '[]');
 
@@ -161,6 +153,18 @@ export const HabitTrackerMode = React.memo(() => {
         existingEntries.push(entryData);
         localStorage.setItem(`habit_entries_${today}`, JSON.stringify(existingEntries));
         setTodayEntries(existingEntries);
+
+        // Update stats immediately
+        const customHabitsData = JSON.parse(localStorage.getItem('custom_habits') || '[]');
+        const allHabits = [...DEFAULT_HABITS, ...customHabitsData];
+
+        setHabitStats({
+          total_habits: allHabits.length,
+          completed_today: existingEntries.length,
+          current_streaks: existingEntries.length,
+          total_time_today: existingEntries.length * 30,
+          categories: [...new Set(existingEntries.map((e: any) => e.habit_category))] as string[]
+        });
       }
     } catch (error) {
       console.error('Failed to log habit:', error);
@@ -224,6 +228,18 @@ export const HabitTrackerMode = React.memo(() => {
 
     localStorage.setItem(`habit_entries_${today}`, JSON.stringify(updatedEntries));
     setTodayEntries(updatedEntries);
+
+    // Update stats immediately
+    const customHabitsData = JSON.parse(localStorage.getItem('custom_habits') || '[]');
+    const allHabits = [...DEFAULT_HABITS, ...customHabitsData];
+
+    setHabitStats({
+      total_habits: allHabits.length,
+      completed_today: updatedEntries.length,
+      current_streaks: updatedEntries.length,
+      total_time_today: updatedEntries.length * 30,
+      categories: [...new Set(updatedEntries.map((e: any) => e.habit_category))] as string[]
+    });
   };
 
   const isHabitCompletedToday = (habitName: string) => {

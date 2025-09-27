@@ -1,7 +1,31 @@
 {
   "extends": ["next/core-web-vitals"],
+  "plugins": ["i18next"],
   "rules": {
     "react/no-unescaped-entities": "off",
-    "react/jsx-no-undef": "off"
-  }
+    "react/jsx-no-undef": "off",
+    "i18next/no-literal-string": [
+      "warn",
+      {
+        "markupOnly": true,
+        "ignoreAttribute": ["data-testid", "className", "aria-label"]
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["**/*.ts", "**/*.tsx"],
+      "rules": {
+        "i18next/no-literal-string": [
+          "warn",
+          {
+            "markupOnly": false,
+            "ignoreAttribute": ["data-testid", "className", "aria-label", "type", "role", "id"],
+            "ignoreCallee": ["console.log", "console.error", "console.warn"],
+            "ignoreProperty": ["className", "testId"]
+          }
+        ]
+      }
+    }
+  ]
 }

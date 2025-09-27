@@ -1,0 +1,361 @@
+openapi: 3.0.3
+info:
+  title: Shareable Group Links API
+  description: API contract for creating and managing shareable group invitation links
+  version: 1.0.0
+  contact:
+    name: Time Tracker API
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Development server
+  - url: https://timetracker.app/api/v1
+    description: Production server
+
+paths:
+  /groups/{groupId}/invitations/link:
+    post:
+      summary: Create shareable link for group invitation
+      description: Generates a shareable URL link for group invitations with JWT token security
+      operationId: createShareableLink
+      tags:
+        - Shareable Links
+        - Group Invitations
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          description: Unique identifier of the group
+          schema:
+            type: string
+            format: uuid
+            example: "123e4567-e89b-12d3-a456-426614174000"
+      requestBody:
+        description: Shareable link creation options
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                expires_in_hours:
+                  type: integer
+                  minimum: 1
+                  maximum: 168
+                  default: 24
+                  description: Link expiration time in hours
+                  example: 24
+                allow_multiple_uses:
+                  type: boolean
+                  default: true
+                  description: Whether link can be used multiple times
+                  example: true
+      responses:
+        '201':
+          description: Shareable link created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                  - group_id
+                  - invitation_code
+                  - shareable_url
+                  - expires_at
+                  - status
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    description: Unique invitation identifier
+                    example: "789e1234-e89b-12d3-a456-426614174002"
+                  group_id:
+                    type: string
+                    format: uuid
+                    description: Group identifier
+                    example: "123e4567-e89b-12d3-a456-426614174000"
+                  invitation_code:
+                    type: string
+                    description: Unique invitation code
+                    example: "def456uvw012"
+                  shareable_url:
+                    type: string
+                    format: uri
+                    description: Complete shareable URL
+                    example: "https://timetracker.app/invite/def456uvw012"
+                  expires_at:
+                    type: string
+                    format: date-time
+                    description: Link expiration timestamp
+                    example: "2025-09-27T10:30:00Z"
+                  status:
+                    type: string
+                    enum: ['pending', 'accepted', 'expired', 'revoked']
+                    description: Current invitation status
+                    example: "pending"
+                  token:
+                    type: string
+                    description: JWT token for secure access (for client-side storage)
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: User not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Insufficient permissions - only group managers can create links
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Group not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /groups/invitations/{invitationCode}/share:
+    post:
+      summary: Track share action for invitation
+      description: Records when a user shares an invitation through various channels
+      operationId: trackShareAction
+      tags:
+        - Share Actions
+        - Group Invitations
+      parameters:
+        - name: invitationCode
+          in: path
+          required: true
+          description: Invitation code from the shareable link
+          schema:
+            type: string
+            example: "def456uvw012"
+      requestBody:
+        description: Share action details
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - share_method
+              properties:
+                share_method:
+                  type: string
+                  enum: ['web_share', 'clipboard', 'email', 'sms', 'whatsapp', 'twitter', 'facebook']
+                  description: Method used to share the invitation
+                  example: "web_share"
+                platform:
+                  type: string
+                  description: Platform or app used for sharing
+                  example: "WhatsApp"
+                recipient_hint:
+                  type: string
+                  description: Hint about recipient (not stored for privacy)
+                  example: "team_member"
+      responses:
+        '201':
+          description: Share action tracked successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  share_id:
+                    type: string
+                    format: uuid
+                    description: Unique share action identifier
+                    example: "abc789-def012-ghi345"
+                  success:
+                    type: boolean
+                    description: Whether tracking was successful
+                    example: true
+        '400':
+          description: Invalid share method or missing data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Invitation not found or expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /invite/{invitationCode}:
+    get:
+      summary: Process invitation link access
+      description: Handles when someone clicks on a shareable invitation link
+      operationId: processInvitationAccess
+      tags:
+        - Invitation Processing
+      parameters:
+        - name: invitationCode
+          in: path
+          required: true
+          description: Unique invitation code from the URL
+          schema:
+            type: string
+            example: "def456uvw012"
+      responses:
+        '200':
+          description: Invitation details retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - group_name
+                  - group_id
+                  - invitation_valid
+                  - expires_at
+                properties:
+                  group_name:
+                    type: string
+                    description: Name of the group being joined
+                    example: "Development Team"
+                  group_id:
+                    type: string
+                    format: uuid
+                    description: Group identifier
+                    example: "123e4567-e89b-12d3-a456-426614174000"
+                  invitation_valid:
+                    type: boolean
+                    description: Whether invitation is still valid
+                    example: true
+                  expires_at:
+                    type: string
+                    format: date-time
+                    description: When invitation expires
+                    example: "2025-09-27T10:30:00Z"
+                  already_member:
+                    type: boolean
+                    description: Whether current user is already a group member
+                    example: false
+                  requires_auth:
+                    type: boolean
+                    description: Whether user needs to authenticate first
+                    example: true
+        '404':
+          description: Invitation not found or invalid code
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '410':
+          description: Invitation expired or revoked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      summary: Accept group invitation
+      description: Processes invitation acceptance and adds user to group
+      operationId: acceptGroupInvitation
+      tags:
+        - Invitation Processing
+      parameters:
+        - name: invitationCode
+          in: path
+          required: true
+          description: Unique invitation code from the URL
+          schema:
+            type: string
+            example: "def456uvw012"
+      responses:
+        '200':
+          description: Successfully joined group
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Whether join was successful
+                    example: true
+                  group_id:
+                    type: string
+                    format: uuid
+                    description: ID of joined group
+                    example: "123e4567-e89b-12d3-a456-426614174000"
+                  membership_id:
+                    type: string
+                    format: uuid
+                    description: New membership identifier
+                    example: "membership-uuid-here"
+                  redirect_url:
+                    type: string
+                    format: uri
+                    description: URL to redirect user after joining
+                    example: "/dashboard/groups/123e4567-e89b-12d3-a456-426614174000"
+        '400':
+          description: Invalid invitation or user already member
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: User must be authenticated to join group
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '410':
+          description: Invitation expired or no longer valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Group is full or user cannot be added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+        code:
+          type: string
+          description: Machine-readable error code
+        details:
+          type: object
+          description: Additional error context
+          additionalProperties: true
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token from Supabase authentication
+
+security:
+  - BearerAuth: []
+  - {} # Some endpoints allow unauthenticated access

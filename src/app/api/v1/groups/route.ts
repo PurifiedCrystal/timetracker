@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@/lib/supabase-server';
-import { groups } from '@/lib/database';
-import type { CreateGroupRequest } from '@/types/group';
+import { GroupService } from '@/lib/services/groupService';
+import type { CreateGroupRequest } from '@/lib/types/group.types';
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = createRouteHandlerClient();
 
-    // Get current user
+    // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json(
@@ -26,29 +26,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (body.max_members && (body.max_members < 1 || body.max_members > 50)) {
+    if (body.max_members && (body.max_members < 1 || body.max_members > 100)) {
       return NextResponse.json(
-        { error: 'Maximum members must be between 1 and 50' },
+        { error: 'Maximum members must be between 1 and 100' },
         { status: 400 }
       );
     }
 
-    const { data: group, error } = await groups.create(user.id, body);
-
-    if (error) {
-      return NextResponse.json(
-        { error },
-        { status: 400 }
-      );
-    }
+    // Create group using service
+    const group = await GroupService.createGroup(body, user.id);
 
     return NextResponse.json({
-      group,
+      data: group,
       message: 'Group created successfully'
     });
 
   } catch (error) {
     console.error('Create group API error:', error);
+
+    if (error instanceof Error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -60,41 +62,33 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = createRouteHandlerClient();
 
-    // TEMPORARY: Mock user for testing
-    const user = {
-      id: 'c8a6da09-4108-4808-bea6-1a10d8b4c430',
-      email: 'demo@timetracker.com',
-      user_metadata: { full_name: 'Demo User' }
-    };
-
-    // Commented out real auth for testing
-    // const { data: { user }, error: authError } = await supabase.auth.getUser();
-    // if (authError || !user) {
-    //   return NextResponse.json(
-    //     { error: 'Unauthorized' },
-    //     { status: 401 }
-    //   );
-    // }
-
-    try {
-      const { data: userGroups, error } = await groups.list(user.id);
-
-      if (!error && userGroups) {
-        return NextResponse.json({
-          groups: userGroups || []
-        });
-      }
-    } catch (dbError) {
-      console.log('Database operation failed, using mock response:', dbError);
+    // Get authenticated user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
     }
 
-    // Return mock groups if database fails
+    // Get user's groups using service
+    const userGroups = await GroupService.getUserGroups(user.id);
+
     return NextResponse.json({
-      groups: []
+      data: userGroups,
+      total: userGroups.length
     });
 
   } catch (error) {
     console.error('Get groups API error:', error);
+
+    if (error instanceof Error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

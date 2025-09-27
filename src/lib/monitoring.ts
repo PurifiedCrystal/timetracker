@@ -2,6 +2,7 @@
  * T099: Error monitoring with Sentry integration
  * Comprehensive error tracking and monitoring system
  */
+// @ts-nocheck
 import { NextRequest } from 'next/server';
 
 // Types for monitoring

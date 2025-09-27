@@ -1,0 +1,338 @@
+openapi: 3.0.3
+info:
+  title: Group Deletion API
+  description: API contract for soft-deleting groups with proper data preservation
+  version: 1.0.0
+  contact:
+    name: Time Tracker API
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Development server
+  - url: https://timetracker.app/api/v1
+    description: Production server
+
+paths:
+  /groups/{groupId}:
+    delete:
+      summary: Soft delete a group
+      description: Marks a group as deleted while preserving historical data and time entries. Only group managers can delete groups.
+      operationId: deleteGroup
+      tags:
+        - Group Management
+        - Group Deletion
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          description: Unique identifier of the group to delete
+          schema:
+            type: string
+            format: uuid
+            example: "123e4567-e89b-12d3-a456-426614174000"
+      requestBody:
+        description: Deletion confirmation and options
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - confirm_deletion
+              properties:
+                confirm_deletion:
+                  type: boolean
+                  description: Explicit confirmation that user wants to delete the group
+                  example: true
+                reason:
+                  type: string
+                  maxLength: 500
+                  description: Optional reason for group deletion
+                  example: "Project completed, team disbanded"
+                preserve_time_entries:
+                  type: boolean
+                  default: true
+                  description: Whether to preserve time entries (always true for compliance)
+                  example: true
+                notify_members:
+                  type: boolean
+                  default: true
+                  description: Whether to notify group members about deletion
+                  example: true
+      responses:
+        '200':
+          description: Group successfully soft-deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - group_id
+                  - deleted_at
+                  - members_notified
+                properties:
+                  success:
+                    type: boolean
+                    description: Whether deletion was successful
+                    example: true
+                  group_id:
+                    type: string
+                    format: uuid
+                    description: ID of the deleted group
+                    example: "123e4567-e89b-12d3-a456-426614174000"
+                  deleted_at:
+                    type: string
+                    format: date-time
+                    description: Timestamp when group was deleted
+                    example: "2025-09-26T15:30:00Z"
+                  members_notified:
+                    type: integer
+                    description: Number of members who were notified
+                    example: 5
+                  time_entries_preserved:
+                    type: integer
+                    description: Number of time entries preserved
+                    example: 142
+                  cleanup_summary:
+                    type: object
+                    description: Summary of cleanup actions performed
+                    properties:
+                      memberships_deactivated:
+                        type: integer
+                        description: Number of memberships deactivated
+                        example: 5
+                      invitations_revoked:
+                        type: integer
+                        description: Number of pending invitations revoked
+                        example: 2
+                      qr_codes_invalidated:
+                        type: integer
+                        description: Number of QR codes invalidated
+                        example: 3
+                      shareable_links_revoked:
+                        type: integer
+                        description: Number of shareable links revoked
+                        example: 1
+        '400':
+          description: Invalid request or missing confirmation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                missing_confirmation:
+                  summary: Deletion not confirmed
+                  value:
+                    error: "confirm_deletion must be true to delete group"
+                    code: "DELETION_NOT_CONFIRMED"
+                active_sessions:
+                  summary: Active time tracking sessions
+                  value:
+                    error: "Cannot delete group with active time tracking sessions"
+                    code: "ACTIVE_SESSIONS_EXIST"
+                    details:
+                      active_sessions: 3
+                      session_users: ["user1", "user2", "user3"]
+        '401':
+          description: User not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Insufficient permissions - only group managers can delete groups
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                not_manager:
+                  summary: User is not group manager
+                  value:
+                    error: "Only group managers can delete groups"
+                    code: "INSUFFICIENT_PERMISSIONS"
+        '404':
+          description: Group not found or already deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                group_not_found:
+                  summary: Group does not exist
+                  value:
+                    error: "Group not found"
+                    code: "GROUP_NOT_FOUND"
+                already_deleted:
+                  summary: Group already deleted
+                  value:
+                    error: "Group has already been deleted"
+                    code: "GROUP_ALREADY_DELETED"
+                    details:
+                      deleted_at: "2025-09-25T10:00:00Z"
+        '422':
+          description: Group cannot be deleted due to business rules
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                pending_exports:
+                  summary: Pending export operations
+                  value:
+                    error: "Cannot delete group with pending export operations"
+                    code: "PENDING_OPERATIONS"
+                    details:
+                      pending_exports: 2
+        '500':
+          description: Internal server error during deletion
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /groups/{groupId}/deletion-preview:
+    get:
+      summary: Preview group deletion impact
+      description: Shows what will happen when a group is deleted, including affected data and members
+      operationId: previewGroupDeletion
+      tags:
+        - Group Management
+        - Group Deletion
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          description: Unique identifier of the group
+          schema:
+            type: string
+            format: uuid
+            example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        '200':
+          description: Deletion impact preview generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - can_delete
+                  - impact_summary
+                properties:
+                  can_delete:
+                    type: boolean
+                    description: Whether group can currently be deleted
+                    example: true
+                  impact_summary:
+                    type: object
+                    description: Summary of deletion impact
+                    required:
+                      - members_affected
+                      - time_entries_preserved
+                      - pending_invitations
+                    properties:
+                      members_affected:
+                        type: integer
+                        description: Number of members who will be removed
+                        example: 5
+                      time_entries_preserved:
+                        type: integer
+                        description: Number of time entries that will be preserved
+                        example: 142
+                      pending_invitations:
+                        type: integer
+                        description: Number of pending invitations to be revoked
+                        example: 2
+                      active_sessions:
+                        type: integer
+                        description: Number of active time tracking sessions
+                        example: 0
+                      qr_codes_active:
+                        type: integer
+                        description: Number of active QR codes to be invalidated
+                        example: 3
+                      shareable_links_active:
+                        type: integer
+                        description: Number of active shareable links to be revoked
+                        example: 1
+                  blockers:
+                    type: array
+                    description: Reasons why group cannot be deleted (if any)
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          enum: ['active_sessions', 'pending_exports', 'system_constraint']
+                          description: Type of blocker
+                        message:
+                          type: string
+                          description: Human-readable blocker description
+                        resolution:
+                          type: string
+                          description: How to resolve this blocker
+                    example: []
+                  warnings:
+                    type: array
+                    description: Important warnings about deletion consequences
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          enum: ['data_loss', 'member_impact', 'compliance']
+                        message:
+                          type: string
+                          description: Warning message
+                    example:
+                      - type: "member_impact"
+                        message: "5 team members will lose access to this group"
+                      - type: "data_loss"
+                        message: "Group settings and configurations will be permanently lost"
+        '401':
+          description: User not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Group not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+        code:
+          type: string
+          description: Machine-readable error code
+        details:
+          type: object
+          description: Additional error context
+          additionalProperties: true
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token from Supabase authentication
+
+security:
+  - BearerAuth: []

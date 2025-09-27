@@ -14,7 +14,9 @@ import {
   Edit2,
   Trash2,
   Save,
-  Settings
+  Settings,
+  DollarSign,
+  UserCog
 } from 'lucide-react';
 
 interface CustomField {
@@ -25,6 +27,15 @@ interface CustomField {
   placeholder?: string;
   options?: string[];
   group_id?: string;
+}
+
+interface GroupMember {
+  id: string;
+  full_name: string;
+  email: string;
+  role: 'manager' | 'member';
+  hourly_rate?: number;
+  joined_at: string;
 }
 
 const FIELD_TYPES = [
@@ -64,9 +75,12 @@ const PRESET_FIELDS = [
 ];
 
 export default function AdminPanel() {
+  const [activeTab, setActiveTab] = useState<'fields' | 'members'>('fields');
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
+  const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingField, setEditingField] = useState<CustomField | null>(null);
+  const [editingMember, setEditingMember] = useState<GroupMember | null>(null);
   const [newField, setNewField] = useState<Partial<CustomField>>({
     name: '',
     type: 'text',
@@ -79,6 +93,7 @@ export default function AdminPanel() {
 
   useEffect(() => {
     loadCustomFields();
+    loadGroupMembers();
   }, []);
 
   const loadCustomFields = async () => {
@@ -89,7 +104,6 @@ export default function AdminPanel() {
         if (response.ok) {
           const data = await response.json();
           setCustomFields(data.fields || []);
-          setLoading(false);
           return;
         }
       } catch (apiError) {
@@ -103,6 +117,59 @@ export default function AdminPanel() {
       }
     } catch (error) {
       console.error('Failed to load custom fields:', error);
+    }
+  };
+
+  const loadGroupMembers = async () => {
+    try {
+      // Try to load from API first
+      try {
+        const response = await fetch('/api/v1/groups/default/members'); // Using default group for demo
+        if (response.ok) {
+          const data = await response.json();
+          setGroupMembers(data.members || []);
+          return;
+        }
+      } catch (apiError) {
+        console.warn('API failed, using localStorage:', apiError);
+      }
+
+      // Fallback to localStorage with sample data
+      const saved = localStorage.getItem('group_members');
+      if (saved) {
+        setGroupMembers(JSON.parse(saved));
+      } else {
+        // Sample data
+        const sampleMembers: GroupMember[] = [
+          {
+            id: '1',
+            full_name: 'John Smith',
+            email: 'john@company.com',
+            role: 'member',
+            hourly_rate: 25.00,
+            joined_at: '2024-01-15T10:00:00Z'
+          },
+          {
+            id: '2',
+            full_name: 'Sarah Johnson',
+            email: 'sarah@company.com',
+            role: 'member',
+            hourly_rate: 30.00,
+            joined_at: '2024-01-20T09:30:00Z'
+          },
+          {
+            id: '3',
+            full_name: 'Mike Davis',
+            email: 'mike@company.com',
+            role: 'member',
+            joined_at: '2024-02-01T14:00:00Z'
+          }
+        ];
+        setGroupMembers(sampleMembers);
+        localStorage.setItem('group_members', JSON.stringify(sampleMembers));
+      }
+    } catch (error) {
+      console.error('Failed to load group members:', error);
     } finally {
       setLoading(false);
     }
@@ -203,6 +270,37 @@ export default function AdminPanel() {
     });
   };
 
+  const updateMemberRate = async (memberId: string, newRate: number) => {
+    try {
+      // Try API first
+      try {
+        const response = await fetch(`/api/v1/groups/default/members/${memberId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ hourly_rate: newRate })
+        });
+
+        if (response.ok) {
+          await loadGroupMembers();
+          setEditingMember(null);
+          return;
+        }
+      } catch (apiError) {
+        console.warn('API update failed, using localStorage:', apiError);
+      }
+
+      // Fallback to localStorage
+      const updated = groupMembers.map(member =>
+        member.id === memberId ? { ...member, hourly_rate: newRate } : member
+      );
+      localStorage.setItem('group_members', JSON.stringify(updated));
+      setGroupMembers(updated);
+      setEditingMember(null);
+    } catch (error) {
+      console.error('Failed to update member rate:', error);
+    }
+  };
+
   const resetForm = () => {
     setNewField({
       name: '',
@@ -213,6 +311,7 @@ export default function AdminPanel() {
     });
     setShowAddForm(false);
     setEditingField(null);
+    setEditingMember(null);
   };
 
   if (loading) {
@@ -237,8 +336,32 @@ export default function AdminPanel() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Admin Panel</h1>
-            <p className="text-gray-600">Configure custom fields for your group members</p>
+            <p className="text-gray-600">Manage your group settings and members</p>
           </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex space-x-1 mb-6">
+          <button
+            onClick={() => setActiveTab('fields')}
+            className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+              activeTab === 'fields'
+                ? 'bg-orange-100 text-orange-700'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Custom Fields
+          </button>
+          <button
+            onClick={() => setActiveTab('members')}
+            className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+              activeTab === 'members'
+                ? 'bg-orange-100 text-orange-700'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Member Management
+          </button>
         </div>
 
         <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
@@ -247,17 +370,22 @@ export default function AdminPanel() {
             <div className="text-sm">
               <p className="text-orange-800 font-medium">Group Manager Controls</p>
               <p className="text-orange-700 mt-1">
-                Add custom fields that your group members must fill out before clocking in.
-                You can require location, project details, team size, or any other information needed for your workflow.
+                {activeTab === 'fields'
+                  ? 'Add custom fields that your group members must fill out before clocking in.'
+                  : 'Manage hourly rates and permissions for your group members.'
+                }
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Preset Fields */}
-      <div className="bg-white rounded-2xl shadow-lg p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Add Fields</h2>
+      {/* Tab Content */}
+      {activeTab === 'fields' && (
+        <>
+          {/* Preset Fields */}
+          <div className="bg-white rounded-2xl shadow-lg p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Add Fields</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {PRESET_FIELDS.map((preset, index) => (
             <button
@@ -498,6 +626,153 @@ export default function AdminPanel() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+        </>
+      )}
+
+      {/* Member Management Tab */}
+      {activeTab === 'members' && (
+        <div className="bg-white rounded-2xl shadow-lg p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-gray-900">Group Members</h2>
+            <div className="text-sm text-gray-500">
+              {groupMembers.length} member{groupMembers.length !== 1 ? 's' : ''}
+            </div>
+          </div>
+
+          {/* Members List */}
+          <div className="space-y-4">
+            {groupMembers.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <UserCog className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                <p>No group members found</p>
+                <p className="text-sm">Members will appear here once they join your group</p>
+              </div>
+            ) : (
+              groupMembers.map((member) => (
+                <div key={member.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3">
+                      <div>
+                        <h3 className="font-medium text-gray-900">{member.full_name}</h3>
+                        <p className="text-sm text-gray-500">{member.email}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {member.role === 'manager' ? (
+                          <span className="inline-flex items-center px-2 py-1 bg-orange-100 text-orange-800 text-xs font-medium rounded-full">
+                            <UserCog className="h-3 w-3 mr-1" />
+                            Manager
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
+                            Member
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="mt-2 text-sm text-gray-500">
+                      Joined {new Date(member.joined_at).toLocaleDateString()}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    {/* Hourly Rate Section */}
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-gray-400" />
+                      {editingMember?.id === member.id ? (
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            defaultValue={member.hourly_rate || ''}
+                            className="w-20 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                const newRate = parseFloat((e.target as HTMLInputElement).value);
+                                if (!isNaN(newRate) && newRate >= 0) {
+                                  updateMemberRate(member.id, newRate);
+                                }
+                              } else if (e.key === 'Escape') {
+                                setEditingMember(null);
+                              }
+                            }}
+                            autoFocus
+                          />
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => {
+                                const input = document.querySelector('input[type="number"]') as HTMLInputElement;
+                                const newRate = parseFloat(input.value);
+                                if (!isNaN(newRate) && newRate >= 0) {
+                                  updateMemberRate(member.id, newRate);
+                                }
+                              }}
+                              className="p-1 text-green-600 hover:bg-green-50 rounded"
+                              title="Save"
+                            >
+                              <Save className="h-3 w-3" />
+                            </button>
+                            <button
+                              onClick={() => setEditingMember(null)}
+                              className="p-1 text-gray-600 hover:bg-gray-50 rounded"
+                              title="Cancel"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-gray-900">
+                            {member.hourly_rate ? `$${member.hourly_rate.toFixed(2)}/hr` : 'Not set'}
+                          </span>
+                          <button
+                            onClick={() => setEditingMember(member)}
+                            className="p-1 text-gray-600 hover:bg-gray-50 rounded transition-colors"
+                            title="Edit hourly rate"
+                          >
+                            <Edit2 className="h-3 w-3" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Member Statistics */}
+          {groupMembers.length > 0 && (
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="text-center p-4 bg-blue-50 rounded-lg">
+                <div className="text-2xl font-bold text-blue-600">
+                  {groupMembers.filter(m => m.hourly_rate).length}
+                </div>
+                <div className="text-sm text-gray-600">With Hourly Rate</div>
+              </div>
+              <div className="text-center p-4 bg-green-50 rounded-lg">
+                <div className="text-2xl font-bold text-green-600">
+                  ${groupMembers
+                    .filter(m => m.hourly_rate)
+                    .reduce((avg, m) => avg + (m.hourly_rate || 0), 0)
+                    .toFixed(0) || '0'}
+                </div>
+                <div className="text-sm text-gray-600">Total Hourly Budget</div>
+              </div>
+              <div className="text-center p-4 bg-purple-50 rounded-lg">
+                <div className="text-2xl font-bold text-purple-600">
+                  ${groupMembers
+                    .filter(m => m.hourly_rate)
+                    .reduce((sum, m, _, arr) => sum + (m.hourly_rate || 0) / arr.length, 0)
+                    .toFixed(2) || '0.00'}
+                </div>
+                <div className="text-sm text-gray-600">Average Rate</div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, createContext, useContext } from 'react';
+import React, { useState, createContext, useContext, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   Clock,
   BarChart3,
-  Settings,
+  User,
   FileDown,
   CreditCard,
   LogOut,
@@ -15,9 +15,11 @@ import {
   Users,
   Shield,
   ToggleLeft,
-  ToggleRight
+  ToggleRight,
+  Target
 } from 'lucide-react';
 import { signOut } from '@/lib/auth';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
 // Create context for tracking mode and CA mode
 const DashboardContext = createContext<{
@@ -46,7 +48,7 @@ const navigation = [
 ];
 
 const bottomNavigation = [
-  { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+  { name: 'Profile', href: '/dashboard/settings', icon: User },
   { name: 'Subscription', href: '/dashboard/subscription', icon: CreditCard },
 ];
 
@@ -63,6 +65,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [trackingMode, setTrackingMode] = useState<'work' | 'habits'>('work');
   const [isGroupAdmin, setIsGroupAdmin] = useState(true); // TODO: Get from user profile
   const [californiaMode, setCaliforniaMode] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -75,9 +78,20 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     }
   };
 
+  // Load CA Mode from localStorage on mount
+  useEffect(() => {
+    const savedCAMode = localStorage.getItem('timetracker_california_mode');
+    if (savedCAMode !== null) {
+      setCaliforniaMode(JSON.parse(savedCAMode));
+    }
+    setMounted(true);
+  }, []);
+
   const handleCAModeToggle = () => {
-    setCaliforniaMode(!californiaMode);
-    // TODO: Save to API/localStorage
+    const newMode = !californiaMode;
+    setCaliforniaMode(newMode);
+    // Save to localStorage
+    localStorage.setItem('timetracker_california_mode', JSON.stringify(newMode));
   };
 
   return (
@@ -125,7 +139,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     return (
                       <button
                         key={item.name}
-                        onClick={handleCAModeToggle}
+                        onClick={() => {
+                          handleCAModeToggle();
+                          setSidebarOpen(false);
+                        }}
                         className="group flex items-center w-full px-2 py-2 text-base font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                       >
                         <ToggleIcon className={`mr-4 h-6 w-6 ${californiaMode ? 'text-blue-500' : 'text-gray-400'}`} />
@@ -143,6 +160,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     <Link
                       key={item.name}
                       href={item.href}
+                      onClick={() => setSidebarOpen(false)}
                       className={`group flex items-center px-2 py-2 text-base font-medium rounded-md ${
                         current
                           ? 'bg-blue-100 text-blue-900'
@@ -171,6 +189,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         <Link
                           key={item.name}
                           href={item.href}
+                          onClick={() => setSidebarOpen(false)}
                           className={`group flex items-center px-2 py-2 text-base font-medium rounded-md ${
                             current
                               ? 'bg-orange-100 text-orange-900'
@@ -184,43 +203,44 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     })}
                   </>
                 )}
-
-                {/* Bottom Navigation */}
-                <div className="pt-6">
-                  {bottomNavigation.map((item) => {
-                    const current = pathname === item.href;
-                    return (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        className={`group flex items-center px-2 py-2 text-base font-medium rounded-md ${
-                          current
-                            ? 'bg-blue-100 text-blue-900'
-                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                        }`}
-                      >
-                        <item.icon className={`mr-4 h-6 w-6 ${current ? 'text-blue-500' : 'text-gray-400'}`} />
-                        {item.name}
-                      </Link>
-                    );
-                  })}
-                </div>
               </nav>
             </div>
-            <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
-              <button
-                onClick={handleSignOut}
-                className="flex-shrink-0 w-full group block"
-              >
-                <div className="flex items-center">
-                  <LogOut className="inline-block h-5 w-5 text-gray-400 group-hover:text-gray-500" />
-                  <div className="ml-3">
-                    <p className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
-                      Sign out
-                    </p>
+            <div className="flex-shrink-0 border-t border-gray-200 p-4 pb-24">
+              {/* Bottom Navigation */}
+              {bottomNavigation.map((item) => {
+                const current = pathname === item.href;
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    onClick={() => setSidebarOpen(false)}
+                    className={`group flex items-center px-2 py-2 text-base font-medium rounded-md mb-1 ${
+                      current
+                        ? 'bg-blue-100 text-blue-900'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    }`}
+                  >
+                    <item.icon className={`mr-4 h-6 w-6 ${current ? 'text-blue-500' : 'text-gray-400'}`} />
+                    {item.name}
+                  </Link>
+                );
+              })}
+
+              <div className="border-t border-gray-200 pt-2 mt-2">
+                <button
+                  onClick={handleSignOut}
+                  className="flex-shrink-0 w-full group block"
+                >
+                  <div className="flex items-center px-2 py-2">
+                    <LogOut className="inline-block h-6 w-6 text-gray-400 group-hover:text-gray-500 mr-4" />
+                    <div>
+                      <p className="text-base font-medium text-gray-700 group-hover:text-gray-900">
+                        Sign out
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </button>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -358,11 +378,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <div className="flex-1 flex items-center">
                 <span className="text-sm font-medium text-gray-900">Welcome back, Demo User</span>
               </div>
-              <div className="ml-4 flex items-center md:ml-6">
-                <div className="flex items-center space-x-1 bg-gray-100 rounded-lg p-1">
+              <div className="ml-2 sm:ml-4 flex items-center md:ml-6 space-x-3">
+                <LanguageSwitcher compact className="hidden sm:block" />
+                <div className="flex items-center space-x-0.5 sm:space-x-1 bg-gray-100 rounded-lg p-0.5 sm:p-1">
                   <button
                     onClick={() => setTrackingMode('work')}
-                    className={`px-2 py-1 text-xs font-medium rounded-md transition-colors ${
+                    className={`px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-md transition-colors whitespace-nowrap ${
                       trackingMode === 'work'
                         ? 'bg-blue-600 text-white shadow-sm'
                         : 'text-gray-600 hover:text-gray-900'
@@ -372,7 +393,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   </button>
                   <button
                     onClick={() => setTrackingMode('habits')}
-                    className={`px-2 py-1 text-xs font-medium rounded-md transition-colors ${
+                    className={`px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-md transition-colors whitespace-nowrap ${
                       trackingMode === 'habits'
                         ? 'bg-green-600 text-white shadow-sm'
                         : 'text-gray-600 hover:text-gray-900'
@@ -392,6 +413,76 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               </div>
             </div>
           </main>
+        </div>
+
+        {/* Mobile Bottom Navigation - Only show on mobile */}
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50">
+          <div className="bg-white/90 backdrop-blur-sm border-t border-gray-200 px-4 py-2">
+            <div className="flex items-center justify-around max-w-md mx-auto">
+              <button
+                onClick={() => router.push('/dashboard')}
+                className="flex flex-col items-center py-2 px-3 rounded-lg transition-all duration-200 hover:bg-gray-100 active:bg-gray-200 transform hover:scale-110 active:scale-95"
+              >
+                <Target className={`h-5 w-5 transition-transform duration-200 ${
+                  pathname === '/dashboard' ? 'text-green-600' : 'text-gray-600'
+                }`} />
+                <span className={`text-xs mt-1 ${
+                  pathname === '/dashboard' ? 'text-green-600' : 'text-gray-600'
+                }`}>Dashboard</span>
+              </button>
+
+              <button
+                onClick={() => router.push('/dashboard/groups')}
+                className="flex flex-col items-center py-2 px-3 rounded-lg transition-all duration-200 hover:bg-gray-100 active:bg-gray-200 transform hover:scale-110 active:scale-95"
+              >
+                <Users className={`h-5 w-5 transition-transform duration-200 ${
+                  pathname === '/dashboard/groups' ? 'text-green-600' : 'text-gray-600'
+                }`} />
+                <span className={`text-xs mt-1 ${
+                  pathname === '/dashboard/groups' ? 'text-green-600' : 'text-gray-600'
+                }`}>Groups</span>
+              </button>
+
+              <button
+                onClick={() => router.push('/dashboard/export')}
+                className="flex flex-col items-center py-2 px-3 rounded-lg transition-all duration-200 hover:bg-gray-100 active:bg-gray-200 transform hover:scale-110 active:scale-95"
+              >
+                <FileDown className={`h-5 w-5 transition-transform duration-200 ${
+                  pathname === '/dashboard/export' ? 'text-green-600' : 'text-gray-600'
+                }`} />
+                <span className={`text-xs mt-1 ${
+                  pathname === '/dashboard/export' ? 'text-green-600' : 'text-gray-600'
+                }`}>Export</span>
+              </button>
+
+              <button
+                onClick={() => router.push('/dashboard/history')}
+                className="flex flex-col items-center py-2 px-3 rounded-lg transition-all duration-200 hover:bg-gray-100 active:bg-gray-200 transform hover:scale-110 active:scale-95"
+              >
+                <BarChart3 className={`h-5 w-5 transition-transform duration-200 ${
+                  pathname === '/dashboard/history' ? 'text-green-600' : 'text-gray-600'
+                }`} />
+                <span className={`text-xs mt-1 ${
+                  pathname === '/dashboard/history' ? 'text-green-600' : 'text-gray-600'
+                }`}>History</span>
+              </button>
+
+              <button
+                onClick={handleCAModeToggle}
+                className="flex flex-col items-center py-2 px-3 rounded-lg transition-all duration-200 hover:bg-gray-100 active:bg-gray-200 transform hover:scale-110 active:scale-95"
+              >
+                {californiaMode ? (
+                  <ToggleRight className="h-5 w-5 text-blue-600 transition-transform duration-200" />
+                ) : (
+                  <ToggleLeft className="h-5 w-5 text-gray-600 transition-transform duration-200" />
+                )}
+                <span className={`text-xs mt-1 ${
+                  californiaMode ? 'text-blue-600' : 'text-gray-600'
+                }`}>CA Mode</span>
+              </button>
+
+            </div>
+          </div>
         </div>
       </div>
     </DashboardContext.Provider>

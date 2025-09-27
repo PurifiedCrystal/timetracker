@@ -1,0 +1,14 @@
+{
+  "hello": "Hello",
+  "goodbye": "Goodbye",
+  "loading": "Loading...",
+  "error": "Error",
+  "retry": "Retry",
+  "save": "Save",
+  "cancel": "Cancel",
+  "language": {
+    "switchLanguage": "Switch Language",
+    "currentLanguage": "Current Language",
+    "selectLanguage": "Select Language"
+  }
+}

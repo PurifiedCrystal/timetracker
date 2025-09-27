@@ -1,0 +1,192 @@
+openapi: 3.0.3
+info:
+  title: Group QR Code Generation API
+  description: API contract for generating QR codes for group invitations
+  version: 1.0.0
+  contact:
+    name: Time Tracker API
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Development server
+  - url: https://timetracker.app/api/v1
+    description: Production server
+
+paths:
+  /groups/{groupId}/invitations/qr:
+    post:
+      summary: Generate QR code for group invitation
+      description: Creates a new QR code invitation for the specified group. Only group managers can generate QR codes.
+      operationId: generateGroupQRCode
+      tags:
+        - QR Codes
+        - Group Invitations
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          description: Unique identifier of the group
+          schema:
+            type: string
+            format: uuid
+            example: "123e4567-e89b-12d3-a456-426614174000"
+      requestBody:
+        description: QR code generation options
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                expires_in_hours:
+                  type: integer
+                  minimum: 1
+                  maximum: 168
+                  default: 24
+                  description: QR code expiration time in hours (1-168 hours)
+                  example: 24
+                error_correction_level:
+                  type: string
+                  enum: ['L', 'M', 'Q', 'H']
+                  default: 'M'
+                  description: QR code error correction level
+                  example: 'M'
+      responses:
+        '201':
+          description: QR code generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                  - group_id
+                  - invitation_code
+                  - qr_code_data
+                  - status
+                  - expires_at
+                  - invitation_url
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    description: Unique invitation identifier
+                    example: "456e7890-e89b-12d3-a456-426614174001"
+                  group_id:
+                    type: string
+                    format: uuid
+                    description: Group identifier
+                    example: "123e4567-e89b-12d3-a456-426614174000"
+                  invitation_code:
+                    type: string
+                    description: Unique invitation code for URL
+                    example: "abc123xyz789"
+                  qr_code_data:
+                    type: string
+                    description: Base64 encoded QR code image (data URL)
+                    example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQ..."
+                  status:
+                    type: string
+                    enum: ['pending', 'accepted', 'expired', 'revoked']
+                    description: Current invitation status
+                    example: "pending"
+                  expires_at:
+                    type: string
+                    format: date-time
+                    description: QR code expiration timestamp
+                    example: "2025-09-27T10:30:00Z"
+                  invitation_url:
+                    type: string
+                    format: uri
+                    description: Complete invitation URL encoded in QR code
+                    example: "https://timetracker.app/invite/abc123xyz789"
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalid_expiration:
+                  summary: Invalid expiration time
+                  value:
+                    error: "expires_in_hours must be between 1 and 168"
+                    code: "INVALID_EXPIRATION"
+        '401':
+          description: User not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                unauthorized:
+                  summary: Not authenticated
+                  value:
+                    error: "Unauthorized"
+                    code: "AUTH_REQUIRED"
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                not_manager:
+                  summary: User is not group manager
+                  value:
+                    error: "Insufficient permissions. Only group managers can generate QR codes."
+                    code: "INSUFFICIENT_PERMISSIONS"
+        '404':
+          description: Group not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                group_not_found:
+                  summary: Group does not exist
+                  value:
+                    error: "Group not found"
+                    code: "GROUP_NOT_FOUND"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                qr_generation_failed:
+                  summary: QR code generation failed
+                  value:
+                    error: "Failed to generate QR code"
+                    code: "QR_GENERATION_ERROR"
+
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+          example: "Group not found"
+        code:
+          type: string
+          description: Machine-readable error code
+          example: "GROUP_NOT_FOUND"
+        details:
+          type: object
+          description: Additional error context
+          additionalProperties: true
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token from Supabase authentication
+
+security:
+  - BearerAuth: []

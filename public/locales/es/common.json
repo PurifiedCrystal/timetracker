@@ -1,0 +1,14 @@
+{
+  "hello": "Hola",
+  "goodbye": "Adiós",
+  "loading": "Cargando...",
+  "error": "Error",
+  "retry": "Reintentar",
+  "save": "Guardar",
+  "cancel": "Cancelar",
+  "language": {
+    "switchLanguage": "Cambiar Idioma",
+    "currentLanguage": "Idioma Actual",
+    "selectLanguage": "Seleccionar Idioma"
+  }
+}

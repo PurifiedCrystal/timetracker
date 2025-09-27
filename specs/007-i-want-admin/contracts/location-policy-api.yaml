@@ -1,0 +1,350 @@
+openapi: 3.0.3
+info:
+  title: Location Policy API
+  description: API endpoints for managing group location policies and verification
+  version: 1.0.0
+  contact:
+    name: Time Tracker API
+
+servers:
+  - url: /api/v1
+    description: API v1 endpoints
+
+paths:
+  /groups/{groupId}/location-policy:
+    get:
+      summary: Get group location policy
+      description: Retrieve the current location policy for a group
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Group UUID
+      responses:
+        '200':
+          description: Location policy retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationPolicyResponse'
+        '403':
+          description: Insufficient permissions to view policy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Group not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Location Policy
+      security:
+        - bearerAuth: []
+
+    put:
+      summary: Update group location policy
+      description: Create or update location policy for a group (admin only)
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Group UUID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateLocationPolicyRequest'
+      responses:
+        '200':
+          description: Location policy updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationPolicyResponse'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Insufficient permissions (admin required)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Group not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Location Policy
+      security:
+        - bearerAuth: []
+
+    delete:
+      summary: Disable group location policy
+      description: Disable location policy for a group (admin only)
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Group UUID
+      responses:
+        '204':
+          description: Location policy disabled successfully
+        '403':
+          description: Insufficient permissions (admin required)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Group not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Location Policy
+      security:
+        - bearerAuth: []
+
+  /groups/{groupId}/location-policy/verify:
+    post:
+      summary: Verify location against policy
+      description: Verify if provided coordinates are within group's location policy
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Group UUID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyLocationRequest'
+      responses:
+        '200':
+          description: Location verification completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyLocationResponse'
+        '400':
+          description: Invalid location data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Group not found or no location policy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Location Verification
+      security:
+        - bearerAuth: []
+
+components:
+  schemas:
+    LocationPolicy:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+          description: Whether location policy is active
+        center:
+          type: object
+          properties:
+            latitude:
+              type: number
+              format: double
+              minimum: -90.0
+              maximum: 90.0
+              description: Center latitude in WGS84 decimal degrees
+            longitude:
+              type: number
+              format: double
+              minimum: -180.0
+              maximum: 180.0
+              description: Center longitude in WGS84 decimal degrees
+          required:
+            - latitude
+            - longitude
+        radius_meters:
+          type: integer
+          minimum: 10
+          maximum: 1000
+          default: 50
+          description: Policy radius in meters
+        enforcement_mode:
+          type: string
+          enum: [strict, permissive]
+          default: permissive
+          description: How to handle verification failures
+        created_at:
+          type: string
+          format: date-time
+          description: Policy creation timestamp
+        created_by:
+          type: string
+          format: uuid
+          description: User who created the policy
+        updated_at:
+          type: string
+          format: date-time
+          description: Last policy update timestamp
+        updated_by:
+          type: string
+          format: uuid
+          description: User who last updated the policy
+      required:
+        - enabled
+
+    LocationPolicyResponse:
+      type: object
+      properties:
+        policy:
+          oneOf:
+            - $ref: '#/components/schemas/LocationPolicy'
+            - type: "null"
+        can_modify:
+          type: boolean
+          description: Whether current user can modify this policy
+      required:
+        - policy
+        - can_modify
+
+    UpdateLocationPolicyRequest:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+          description: Enable or disable location policy
+        center:
+          type: object
+          properties:
+            latitude:
+              type: number
+              format: double
+              minimum: -90.0
+              maximum: 90.0
+            longitude:
+              type: number
+              format: double
+              minimum: -180.0
+              maximum: 180.0
+          required:
+            - latitude
+            - longitude
+        radius_meters:
+          type: integer
+          minimum: 10
+          maximum: 1000
+          default: 50
+        enforcement_mode:
+          type: string
+          enum: [strict, permissive]
+          default: permissive
+      required:
+        - enabled
+
+    VerifyLocationRequest:
+      type: object
+      properties:
+        latitude:
+          type: number
+          format: double
+          minimum: -90.0
+          maximum: 90.0
+          description: User's current latitude
+        longitude:
+          type: number
+          format: double
+          minimum: -180.0
+          maximum: 180.0
+          description: User's current longitude
+        accuracy:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 10000
+          description: GPS accuracy in meters
+      required:
+        - latitude
+        - longitude
+        - accuracy
+
+    VerifyLocationResponse:
+      type: object
+      properties:
+        verified:
+          type: boolean
+          description: Whether location is within policy boundaries
+        status:
+          type: string
+          enum: [verified, warning, unavailable, timeout, rejected]
+          description: Verification result status
+        distance_meters:
+          type: number
+          format: double
+          description: Distance from policy center in meters
+        message:
+          type: string
+          description: Human-readable verification result
+        accuracy_sufficient:
+          type: boolean
+          description: Whether GPS accuracy meets policy requirements
+      required:
+        - verified
+        - status
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error type
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          description: Additional error context
+      required:
+        - error
+        - message
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+tags:
+  - name: Location Policy
+    description: Group location policy management
+  - name: Location Verification
+    description: Location verification operations

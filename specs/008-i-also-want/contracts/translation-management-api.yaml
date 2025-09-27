@@ -1,0 +1,475 @@
+openapi: 3.0.3
+info:
+  title: Translation Management API
+  description: API endpoints for translation file management and automated translation generation
+  version: 1.0.0
+  contact:
+    name: Time Tracker API
+
+servers:
+  - url: /api/v1
+    description: API v1 endpoints
+
+paths:
+  /translations/{language}:
+    get:
+      summary: Get translation files for language
+      description: Retrieve all translation namespaces for a specific language
+      parameters:
+        - name: language
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[a-z]{2}$'
+          description: ISO 639-1 language code
+          example: "es"
+        - name: namespace
+          in: query
+          schema:
+            type: string
+          description: Specific namespace to retrieve (optional)
+          example: "dashboard"
+        - name: version
+          in: query
+          schema:
+            type: string
+          description: Cache-busting version parameter
+          example: "1.0.0"
+      responses:
+        '200':
+          description: Translation files retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TranslationResponse'
+          headers:
+            Cache-Control:
+              description: Caching instructions
+              schema:
+                type: string
+                example: "public, max-age=3600"
+            ETag:
+              description: Entity tag for caching
+              schema:
+                type: string
+        '404':
+          description: Language or namespace not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Translation Files
+
+  /translations/{language}/generate:
+    post:
+      summary: Generate automated translations
+      description: Create translation files using LibreTranslate for specified language
+      parameters:
+        - name: language
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[a-z]{2}$'
+          description: Target language code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TranslationGenerationRequest'
+      responses:
+        '202':
+          description: Translation generation started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TranslationGenerationResponse'
+        '400':
+          description: Invalid request or unsupported language
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Translation service rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Translation Generation
+
+  /translations/{language}/validate:
+    post:
+      summary: Validate translation files
+      description: Check translation files for completeness and formatting issues
+      parameters:
+        - name: language
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Language code to validate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TranslationValidationRequest'
+      responses:
+        '200':
+          description: Validation completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TranslationValidationResponse'
+        '400':
+          description: Invalid request format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Translation Validation
+
+  /translations/generation/{jobId}:
+    get:
+      summary: Get translation generation status
+      description: Check the status of an automated translation generation job
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Translation generation job ID
+      responses:
+        '200':
+          description: Job status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TranslationJobStatus'
+        '404':
+          description: Job not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Translation Generation
+
+components:
+  schemas:
+    TranslationResponse:
+      type: object
+      properties:
+        language:
+          type: string
+          description: Language code
+          example: "es"
+        namespaces:
+          type: object
+          additionalProperties:
+            type: object
+          description: Translation data organized by namespace
+          example:
+            common:
+              buttons:
+                save: "Guardar"
+                cancel: "Cancelar"
+            dashboard:
+              title: "Panel de Control"
+              welcome: "Bienvenido"
+        metadata:
+          $ref: '#/components/schemas/TranslationMetadata'
+      required:
+        - language
+        - namespaces
+
+    TranslationMetadata:
+      type: object
+      properties:
+        version:
+          type: string
+          description: Translation file version
+          example: "1.0.0"
+        lastUpdated:
+          type: string
+          format: date-time
+          description: When translations were last updated
+        completeness:
+          type: object
+          properties:
+            total:
+              type: integer
+              description: Total number of translation keys
+            translated:
+              type: integer
+              description: Number of translated keys
+            missing:
+              type: integer
+              description: Number of missing translations
+            percentage:
+              type: number
+              format: float
+              description: Completion percentage
+        generationMethod:
+          type: string
+          enum: [manual, automated, hybrid]
+          description: How translations were created
+        quality:
+          type: object
+          properties:
+            score:
+              type: number
+              format: float
+              minimum: 0
+              maximum: 1
+              description: Overall quality score
+            reviewed:
+              type: boolean
+              description: Whether translations have been manually reviewed
+
+    TranslationGenerationRequest:
+      type: object
+      properties:
+        namespaces:
+          type: array
+          items:
+            type: string
+          description: Specific namespaces to translate
+          example: ["common", "dashboard"]
+        overwrite:
+          type: boolean
+          description: Whether to overwrite existing translations
+          default: false
+        quality:
+          type: string
+          enum: [fast, balanced, high]
+          description: Translation quality preference
+          default: "balanced"
+        batchSize:
+          type: integer
+          description: Number of strings to translate per batch
+          default: 50
+          minimum: 1
+          maximum: 100
+      required:
+        - namespaces
+
+    TranslationGenerationResponse:
+      type: object
+      properties:
+        jobId:
+          type: string
+          format: uuid
+          description: Unique job identifier
+        status:
+          type: string
+          enum: [queued, processing, completed, failed]
+          description: Current job status
+        estimatedCompletion:
+          type: string
+          format: date-time
+          description: Estimated completion time
+        progress:
+          type: object
+          properties:
+            total:
+              type: integer
+              description: Total strings to translate
+            completed:
+              type: integer
+              description: Strings already translated
+            errors:
+              type: integer
+              description: Translation errors encountered
+      required:
+        - jobId
+        - status
+
+    TranslationValidationRequest:
+      type: object
+      properties:
+        namespaces:
+          type: array
+          items:
+            type: string
+          description: Namespaces to validate
+          example: ["common", "dashboard"]
+        strict:
+          type: boolean
+          description: Enable strict validation mode
+          default: false
+        baseLanguage:
+          type: string
+          description: Base language to compare against
+          default: "en"
+
+    TranslationValidationResponse:
+      type: object
+      properties:
+        isValid:
+          type: boolean
+          description: Overall validation result
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationError'
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationWarning'
+        statistics:
+          type: object
+          properties:
+            totalKeys:
+              type: integer
+            missingKeys:
+              type: integer
+            invalidKeys:
+              type: integer
+            completeness:
+              type: number
+              format: float
+      required:
+        - isValid
+
+    ValidationError:
+      type: object
+      properties:
+        namespace:
+          type: string
+          description: Namespace where error occurred
+        key:
+          type: string
+          description: Translation key with error
+        error:
+          type: string
+          enum: [missing_key, invalid_format, too_long, invalid_interpolation, html_content]
+          description: Type of validation error
+        message:
+          type: string
+          description: Human-readable error description
+        severity:
+          type: string
+          enum: [error, warning]
+          description: Error severity level
+      required:
+        - namespace
+        - key
+        - error
+        - message
+
+    ValidationWarning:
+      type: object
+      properties:
+        namespace:
+          type: string
+        key:
+          type: string
+        warning:
+          type: string
+          enum: [length_mismatch, capitalization, punctuation, placeholder_count]
+        message:
+          type: string
+        suggestion:
+          type: string
+          description: Suggested improvement
+
+    TranslationJobStatus:
+      type: object
+      properties:
+        jobId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [queued, processing, completed, failed, cancelled]
+        language:
+          type: string
+          description: Target language being translated
+        progress:
+          type: object
+          properties:
+            total:
+              type: integer
+            completed:
+              type: integer
+            failed:
+              type: integer
+            percentage:
+              type: number
+              format: float
+        startedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+              error:
+                type: string
+              timestamp:
+                type: string
+                format: date-time
+        result:
+          type: object
+          properties:
+            translatedKeys:
+              type: integer
+            skippedKeys:
+              type: integer
+            qualityScore:
+              type: number
+              format: float
+            downloadUrl:
+              type: string
+              format: uri
+              description: URL to download generated translations
+      required:
+        - jobId
+        - status
+        - language
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error type
+          example: "unsupported_language"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Language 'xyz' is not supported for translation"
+        details:
+          type: object
+          description: Additional error context
+        supportedLanguages:
+          type: array
+          items:
+            type: string
+          description: List of supported language codes
+      required:
+        - error
+        - message
+
+tags:
+  - name: Translation Files
+    description: Translation file retrieval and management
+  - name: Translation Generation
+    description: Automated translation generation using LibreTranslate
+  - name: Translation Validation
+    description: Translation file validation and quality checks

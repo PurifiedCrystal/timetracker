@@ -1,0 +1,18 @@
+{
+  "title": "Time Tracker Dashboard",
+  "welcome": "Welcome back!",
+  "currentTime": "Current Time",
+  "todayTotal": "Today's Total",
+  "weekTotal": "This Week",
+  "monthTotal": "This Month",
+  "activeSession": "Active Session",
+  "noActiveSession": "No active session",
+  "recentEntries": "Recent Entries",
+  "quickActions": "Quick Actions",
+  "viewAll": "View All",
+  "statistics": "Statistics",
+  "productivity": "Productivity",
+  "efficiency": "Efficiency",
+  "goals": "Goals",
+  "targets": "Targets"
+}

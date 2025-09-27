@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { format, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, subYears } from 'date-fns';
+import TimeCharts from '@/components/TimeCharts';
 
 interface TimeEntry {
   id: string;
@@ -305,6 +306,13 @@ export default function HistoryPage() {
           </div>
         )}
       </div>
+
+      {/* Time Charts - Only show for work mode */}
+      {mode === 'work' && timeEntries.length > 0 && (
+        <div className="mb-6">
+          <TimeCharts timeEntries={timeEntries} dateRange={dateRange} />
+        </div>
+      )}
 
       {/* Entry Details */}
       <div className="bg-white rounded-2xl shadow-lg p-6">

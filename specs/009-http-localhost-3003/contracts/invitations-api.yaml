@@ -1,0 +1,339 @@
+openapi: 3.0.3
+info:
+  title: Group Invitations API
+  description: API for QR code-based group invitations
+  version: 1.0.0
+
+paths:
+  /api/v1/groups/{groupId}/invitations:
+    get:
+      summary: List group invitations
+      description: Get all active invitations for a group (admin only)
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of invitations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  invitations:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Invitation'
+        '403':
+          description: Access denied (not admin)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Group not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: Create group invitation
+      description: Generate QR code invitation for group (admin only)
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                expires_in_hours:
+                  type: integer
+                  minimum: 1
+                  maximum: 168
+                  default: 24
+                  description: Hours until invitation expires
+                max_uses:
+                  type: integer
+                  minimum: 1
+                  maximum: 50
+                  default: 1
+                  description: Maximum number of uses for this invitation
+      responses:
+        '201':
+          description: Invitation created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  invitation:
+                    $ref: '#/components/schemas/InvitationWithCode'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Access denied (not admin)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v1/groups/{groupId}/invitations/{invitationId}:
+    delete:
+      summary: Revoke invitation
+      description: Revoke an active invitation (admin only)
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: invitationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Invitation revoked successfully
+        '403':
+          description: Access denied (not admin)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Invitation not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v1/invitations/{code}/join:
+    post:
+      summary: Join group via invitation code
+      description: Join a group using QR code invitation
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 32
+            maxLength: 32
+      responses:
+        '200':
+          description: Successfully joined group
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  group:
+                    $ref: '#/components/schemas/Group'
+                  membership:
+                    $ref: '#/components/schemas/GroupMember'
+        '400':
+          description: Invalid invitation or user already member
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                already_member:
+                  summary: User already a member
+                  value:
+                    error: "Already a member of this group"
+                    code: "ALREADY_MEMBER"
+                expired:
+                  summary: Invitation expired
+                  value:
+                    error: "Invitation has expired"
+                    code: "INVITATION_EXPIRED"
+                max_uses:
+                  summary: Invitation fully used
+                  value:
+                    error: "Invitation has reached maximum uses"
+                    code: "INVITATION_EXHAUSTED"
+        '404':
+          description: Invitation not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v1/invitations/{code}:
+    get:
+      summary: Get invitation details
+      description: Get invitation details for preview (before joining)
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 32
+            maxLength: 32
+      responses:
+        '200':
+          description: Invitation details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  group_name:
+                    type: string
+                  group_description:
+                    type: string
+                    nullable: true
+                  expires_at:
+                    type: string
+                    format: date-time
+                  remaining_uses:
+                    type: integer
+                    nullable: true
+                    description: null if unlimited uses
+        '404':
+          description: Invitation not found or expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Invitation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        group_id:
+          type: string
+          format: uuid
+        expires_at:
+          type: string
+          format: date-time
+        created_by:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+        max_uses:
+          type: integer
+        used_count:
+          type: integer
+        is_expired:
+          type: boolean
+        is_exhausted:
+          type: boolean
+
+    InvitationWithCode:
+      allOf:
+        - $ref: '#/components/schemas/Invitation'
+        - type: object
+          properties:
+            code:
+              type: string
+              description: 32-character invitation code for QR generation
+
+    Group:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        creator_id:
+          type: string
+          format: uuid
+        max_members:
+          type: integer
+        members_count:
+          type: integer
+        role:
+          type: string
+          enum: [admin, member]
+          description: Current user's role in this group
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    GroupMember:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+          description: User's email (from auth.users)
+        role:
+          type: string
+          enum: [admin, member]
+        joined_at:
+          type: string
+          format: date-time
+        invited_by:
+          type: string
+          format: uuid
+          nullable: true
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+        code:
+          type: string
+          description: Error code
+        details:
+          type: object
+          description: Additional error details
+          nullable: true
+
+  securitySchemes:
+    supabaseAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - supabaseAuth: []
