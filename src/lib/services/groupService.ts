@@ -106,7 +106,7 @@ export class GroupService {
         name: request.name.trim(),
         description: request.description?.trim() || null,
         manager_id: userId,
-        max_members: request.max_members || null, // No limit by default
+        max_members: request.max_members || undefined, // No limit by default
       };
 
       const supabase = createRouteHandlerClient();
