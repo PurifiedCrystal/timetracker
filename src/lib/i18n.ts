@@ -183,7 +183,7 @@ export function getCurrentLanguage(): string {
  * Get loaded languages
  */
 export function getLoadedLanguages(): string[] {
-  return i18n.languages || [DEFAULT_LANGUAGE_CONFIG.defaultLanguage];
+  return [...(i18n.languages || [DEFAULT_LANGUAGE_CONFIG.defaultLanguage])];
 }
 
 /**
