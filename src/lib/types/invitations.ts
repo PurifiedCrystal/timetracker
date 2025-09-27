@@ -112,6 +112,8 @@ export interface ShareActionRequest {
   share_method: ShareMethod;
   platform?: string;
   recipient_hint?: string;
+  success?: boolean;
+  error_message?: string;
 }
 
 export interface ShareActionResponse {
