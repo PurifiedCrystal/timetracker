@@ -111,7 +111,6 @@ export const COUNTRY_LANGUAGE_MAP: Record<string, string> = {
   // French-speaking countries
   'FR': 'fr',
   'BE': 'fr', // Belgium (partially)
-  'CH': 'fr', // Switzerland (partially)
   'LU': 'fr',
   'MC': 'fr',
   'SN': 'fr',
@@ -134,7 +133,6 @@ export const COUNTRY_LANGUAGE_MAP: Record<string, string> = {
   'IT': 'it',
   'SM': 'it',
   'VA': 'it',
-  'CH': 'it' // Switzerland (partially)
 };
 
 /** Default application language */
