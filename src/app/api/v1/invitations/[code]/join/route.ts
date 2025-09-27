@@ -87,7 +87,7 @@ export async function POST(
       .eq('is_active', true)
 
     const group = invitation.groups
-    if (memberCount >= group.max_members) {
+    if (memberCount !== null && memberCount >= group.max_members) {
       return NextResponse.json(
         { error: 'Group has reached maximum member limit' },
         { status: 400 }
