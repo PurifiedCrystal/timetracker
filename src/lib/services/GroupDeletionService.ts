@@ -253,7 +253,7 @@ export class GroupDeletionService {
       .eq('group_id', groupId)
       .is('end_time', null);
 
-    return sessions ? sessions.map(s => s.user_id) : [];
+    return sessions ? sessions.map((s: any) => s.user_id) : [];
   }
 
   private async getActiveQRCodeCount(groupId: string): Promise<number> {
