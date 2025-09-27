@@ -176,8 +176,8 @@ export class QRCodeService {
       }
 
       const totalGenerated = stats.length;
-      const activeCodes = stats.filter(s => s.status === 'pending').length;
-      const totalScans = stats.reduce((sum, s) => sum + s.access_count, 0);
+      const activeCodes = stats.filter((s: any) => s.status === 'pending').length;
+      const totalScans = stats.reduce((sum: number, s: any) => sum + s.access_count, 0);
 
       return {
         total_generated: totalGenerated,
