@@ -352,8 +352,12 @@ export class InvitationService {
       };
 
       invitations.forEach((inv: any) => {
-        stats[inv.status as keyof typeof stats]++;
-        stats.by_type[inv.invitation_type]++;
+        if (inv.status in stats) {
+          (stats as any)[inv.status]++;
+        }
+        if (inv.invitation_type in stats.by_type) {
+          stats.by_type[inv.invitation_type as InvitationType]++;
+        }
       });
 
       return stats;
