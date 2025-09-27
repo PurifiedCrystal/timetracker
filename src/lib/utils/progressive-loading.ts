@@ -352,14 +352,14 @@ export class ProgressiveLoadingService {
   private getAdjacentLanguages(currentLanguage: SupportedLanguage): SupportedLanguage[] {
     // Define language proximity for intelligent preloading
     const languageGroups: Record<string, SupportedLanguage[]> = {
-      'en': ['es', 'fr'],
-      'es': ['en', 'fr', 'it'],
-      'fr': ['en', 'es', 'it'],
-      'de': ['en', 'fr'],
-      'it': ['es', 'fr', 'en']
+      'en': ['es' as SupportedLanguage, 'fr' as SupportedLanguage],
+      'es': ['en' as SupportedLanguage, 'fr' as SupportedLanguage, 'it' as SupportedLanguage],
+      'fr': ['en' as SupportedLanguage, 'es' as SupportedLanguage, 'it' as SupportedLanguage],
+      'de': ['en' as SupportedLanguage, 'fr' as SupportedLanguage],
+      'it': ['es' as SupportedLanguage, 'fr' as SupportedLanguage, 'en' as SupportedLanguage]
     };
 
-    return languageGroups[currentLanguage] || ['en'];
+    return languageGroups[currentLanguage] || ['en' as SupportedLanguage];
   }
 }
 
