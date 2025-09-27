@@ -30,7 +30,7 @@ export interface TestScenario {
 /**
  * Mock translation data for testing
  */
-export const mockTranslations: Record<string, MockTranslationData> = {
+export const mockTranslations: Record<string, any> = {
   en: {
     common: {
       hello: 'Hello',
