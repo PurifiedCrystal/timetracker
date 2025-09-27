@@ -241,7 +241,7 @@ export class TranslationCacheService {
    * Private helper methods
    */
   private getCacheKey(language: SupportedLanguage, namespace?: string, version?: string): string {
-    const parts = [language];
+    const parts: string[] = [language];
     if (namespace) parts.push(namespace);
     if (version) parts.push(version);
     return parts.join(':');
