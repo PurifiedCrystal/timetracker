@@ -40,7 +40,7 @@ export class GroupMembershipService {
         .order('joined_at', { ascending: true });
 
       if (error) throw error;
-      return data || [];
+      return (data || []) as MembershipWithUser[];
     } catch (error) {
       console.error('Error fetching group members:', error);
       throw error;
