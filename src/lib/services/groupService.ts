@@ -88,7 +88,7 @@ export class GroupService {
 
       return {
         ...data,
-        member_count: data.group_memberships.filter(m => m.is_active && !m.removed_at).length,
+        member_count: data.group_memberships.filter((m: any) => m.is_active && !m.removed_at).length,
         active_invitations_count: activeInvitations.length,
       };
     } catch (error) {
