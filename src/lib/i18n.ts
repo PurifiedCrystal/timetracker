@@ -157,7 +157,7 @@ export async function changeLanguage(language: string): Promise<void> {
  */
 export async function loadNamespace(namespace: string, language?: string): Promise<void> {
   try {
-    await i18n.loadNamespaces(namespace, language);
+    await i18n.loadNamespaces(namespace);
     console.log(`Successfully loaded namespace: ${namespace}`);
   } catch (error) {
     console.error('Failed to load namespace:', error);
